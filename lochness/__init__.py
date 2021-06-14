@@ -81,8 +81,10 @@ class Subject(object):
                 'metadata_csv': self.metadata_csv}
         
     def to_bids(self):
-        self.general_folder = os.path.join(self.general_folder, self.study)
-        self.protected_folder = os.path.join(self.protected_folder, self.study)
+        if not self._bids:
+            self.general_folder = os.path.join(self.general_folder, self.study)
+            self.protected_folder = os.path.join(self.protected_folder, self.study)
+            self._bids = True
 
 
 def initialize_metadata(Lochness, args) -> None:
