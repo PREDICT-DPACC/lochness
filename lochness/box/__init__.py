@@ -333,7 +333,7 @@ def sync_module(Lochness: 'lochness.config',
                     if not product:
                         continue
 
-                    protect = product.get('protect', False)
+                    protect = product.get('protect', True)
                     output_base = subject.protected_folder \
                                   if protect else subject.general_folder
 
