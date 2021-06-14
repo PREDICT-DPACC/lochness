@@ -110,8 +110,8 @@ def lochness_subject_raw_json(LochnessMetadataInitialized):
             continue
 
         phoenix_path = Path(LochnessMetadataInitialized['phoenix_root'])
-        subject_proc_p = phoenix_path / 'PROTECTED' / 'StudyA' / 'raw' / 'subject_1'
-        raw_json = subject_proc_p / 'surveys' / f"{subject.id}.StudyA.json"
+        subject_proc_p = phoenix_path / 'PROTECTED' / 'StudyA' / 'raw' / 'surveys' / 'subject_1'
+        raw_json = subject_proc_p / f"{subject.id}.StudyA.json"
 
         return LochnessMetadataInitialized, subject, raw_json
 
