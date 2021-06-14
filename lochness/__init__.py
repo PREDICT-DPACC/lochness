@@ -82,8 +82,10 @@ class Subject(object):
         
     def to_bids(self):
         if not self._bids:
-            self.general_folder = os.path.join(self.general_folder, self.study)
-            self.protected_folder = os.path.join(self.protected_folder, self.study)
+            self.general_folder = os.path.join(self.general_folder,
+                                               self.study)
+            self.protected_folder = os.path.join(self.protected_folder,
+                                                 self.study)
             self._bids = True
 
 
