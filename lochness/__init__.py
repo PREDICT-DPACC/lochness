@@ -66,6 +66,7 @@ class Subject(object):
         self.general_folder = general
         self.protected_folder = protected
         self.metadata_csv = metadata_file
+        self._bids = False
 
     def asdict(self):
         '''emulating collection._asdict()'''
