@@ -267,7 +267,8 @@ def sync_module(Lochness: 'lochness.config',
     '''Sync box data for the subject'''
 
     # only the module_name string without 'box.'
-    module_basename = module_name.split('.')[1]
+    module_basename = module_name.split('.')[1] if 'box' in module_name \
+            else module_name
 
     # delete on success
     delete = delete_on_success(Lochness, module_basename)
@@ -302,15 +303,26 @@ def sync_module(Lochness: 'lochness.config',
         # loop through the items defined for the BOX data
         for datatype, products in iter(
                 Lochness['box'][module_basename]['file_patterns'].items()):
-            subject_obj = get_box_object_based_on_name(
-                    client, bx_sid, bx_base_obj.id)
 
-            if subject_obj == None:
-                logger.debug(f'{bx_sid} is not found under {bx_base_obj}')
-                continue
+            if Lochness['BIDS']:
+                datatype_obj = get_box_object_based_on_name(
+                        client, datatype, bx_base_obj.id)
+                if datatype_obj == None:
+                    logger.debug(f'{datatype} is not found under {bx_base_obj}')
+                    continue
 
-            datatype_obj = get_box_object_based_on_name(
-                    client, datatype, subject_obj.id)
+                subject_obj = get_box_object_based_on_name(
+                        client, datatype, datatype_obj.id)
+            else:
+                subject_obj = get_box_object_based_on_name(
+                        client, bx_sid, bx_base_obj.id)
+
+                if subject_obj == None:
+                    logger.debug(f'{bx_sid} is not found under {bx_base_obj}')
+                    continue
+
+                datatype_obj = get_box_object_based_on_name(
+                        client, datatype, subject_obj.id)
 
             # full path
             bx_head = join(bx_base,
@@ -334,8 +346,13 @@ def sync_module(Lochness: 'lochness.config',
                         continue
 
                     protect = product.get('protect', True)
+
+                    # GENERAL / STUDY or PROTECTED / STUDY
                     output_base = subject.protected_folder \
-                                  if protect else subject.general_folder
+                        if protect else subject.general_folder
+
+                    if Lochness['BIDS']:
+                        output_base = Path(output_base) / subject.id
 
                     encrypt = product.get('encrypt', False)
                     key = enc_key if encrypt else None
