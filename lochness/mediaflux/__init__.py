@@ -59,13 +59,8 @@ def sync_module(Lochness: 'lochness.config',
         
         mf_base = base(Lochness, study_basename)
 
-        print(mf_base)
-
         for datatype, products in \
             iter(Lochness['mediaflux'][study_basename]['file_patterns'].items()):
-
-            print(datatype, products)
-
             '''
             file_patterns:
                 actigraphy:
