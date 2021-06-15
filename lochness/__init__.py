@@ -19,6 +19,7 @@ import collections as col
 import lochness.ssh as ssh
 import pandas as pd
 
+
 logger = logging.getLogger(__name__)
 
 Subject = col.namedtuple('Subject', [
@@ -83,10 +84,10 @@ class Subject(object):
         
     def to_bids(self):
         if not self._bids:
-            self.general_folder = os.path.join(self.general_folder,
-                                               self.study)
-            self.protected_folder = os.path.join(self.protected_folder,
-                                                 self.study)
+            # GENERAL / STUDY / SUBJECT -> GENERAL / STUDY
+            self.general_folder = os.path.dirname(self.general_folder)
+            self.protected_folder = os.path.dirname(self.protected_folder)
+
             self._bids = True
 
 
@@ -94,13 +95,13 @@ def initialize_metadata(Lochness, args) -> None:
     '''Create (overwrite) metadata.csv using either REDCap or RPMS database'''
     for study_name in args.studies:
         # if 'redcap' or 'rpms' is in the sources, create (overwrite)
-        if 'redcap' in args.sources:
+        if 'redcap' in args.input_sources:
             id_fieldname = 'record_id1'
             consent_fieldname = 'Consent'
             REDCap.initialize_metadata(
                     Lochness, study_name, id_fieldname, consent_fieldname)
 
-        elif 'rpms' in args.sources:
+        elif 'rpms' in args.input_sources:
             # metadata.csv
             id_fieldname = 'record_id1'
             consent_fieldname = 'Consent'
@@ -129,7 +130,6 @@ def read_phoenix_metadata(Lochness, studies=None):
                          f'{study_name}_metadata.csv')
         if not os.path.exists(f):
             logger.error('metadata file does not exist {0}'.format(f))
-            print('no meta')
             continue
         logger.debug('reading metadata file {0}'.format(f))
         try:
