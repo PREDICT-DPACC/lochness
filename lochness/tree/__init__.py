@@ -3,6 +3,7 @@ import sys
 import logging
 from pathlib import Path
 from string import Template
+import re
 
 Templates = {
     'actigraphy': {
@@ -23,6 +24,7 @@ Templates = {
     },
     'behav_qc': {
         'raw': Template('${base}/mri_behav/processed/behav_qc'),
+        'processed': Template('${base}/mri_behav/processed/behav_qc')
     },
     'mri_eye': {
         'raw': Template('${base}/mri_eye/raw/eyeTracking'),
@@ -85,21 +87,26 @@ def get(data_type, base, **kwargs):
     processed_folder = None
 
     if kwargs.get('BIDS', True):   # PHOENIX to BIDS
-        phoenix_id = Path(base).parent.name   # get SUBJECT
+        phoenix_id = Path(base).name  # get SUBJECT
+        study = Path(base).parent.name   # get study
+
         if 'raw' in Templates[data_type]:
             # restructure root
-            base = Path(base).parent.parent / 'raw' / phoenix_id
-            raw_folder = Templates[data_type]['raw'].substitute(
-                    base=str(base), **kwargs)
-            raw_folder = Path(raw_folder).parent  # remove the 'raw' at the end
+            base = Path(base).parent.parent / study / 'raw'
+            sub_folder = Templates[data_type]['raw'].substitute(
+                    base='', **kwargs)[1:]
+            sub_folder = re.sub('/(raw|processed)', '', sub_folder)
+            raw_folder = base / phoenix_id / sub_folder
 
         if 'processed' in Templates[data_type]:
             # restructure root
-            base = Path(base).parent.parent / 'processed' / phoenix_id
-            processed_folder = Templates[data_type]['processed'].substitute(
-                    base=base, **kwargs)
-            # remove the 'processed' at the end
-            processed_folder = Path(processed_folder).parent
+            base = Path(base).parent.parent / study / 'processed'
+            sub_folder = Templates[data_type]['processed'].substitute(
+                    base='', **kwargs)[1:]
+
+            sub_folder = re.sub('/(raw|processed)', '', sub_folder)
+            processed_folder = base / phoenix_id / sub_folder
+
     else:
         if 'raw' in Templates[data_type]:
             raw_folder = Templates[data_type]['raw'].substitute(
