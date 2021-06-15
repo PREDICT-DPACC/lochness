@@ -276,9 +276,9 @@ def test_lochness_to_lochness_transfer(Lochness):
 
 
 def test_sftp():
-    tokens = Tokens(test_dir / 'lochness_test' / 'transfer')
+    tokens = Tokens()
     host, username, password, path_in_host, port = \
-            tokens.read_token_or_get_input()
+            tokens.read_token_or_get_input('transfer')
     file_to_send = 'hoho.txt'
     with open(file_to_send, 'w') as f:
         f.write('hahahah')
