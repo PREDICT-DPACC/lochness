@@ -5,6 +5,7 @@ from pathlib import Path
 from string import Template
 import re
 
+
 Templates = {
     'actigraphy': {
         'raw': Template('${base}/actigraphy/raw'),
