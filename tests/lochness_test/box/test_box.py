@@ -59,6 +59,28 @@ def args_and_Lochness():
     return args, lochness_obj
 
 
+@pytest.fixture
+def args_and_Lochness_BIDS():
+    args = Args('tmp_lochness')
+    args.sources = ['box']
+    create_lochness_template(args)
+    keyring = KeyringAndEncrypt(args.outdir)
+    information_to_add_to_metadata = {'box': {
+        'subject_id': '1001',
+        'source_id': 'LA123456'}}
+
+    for study in args.studies:
+        keyring.update_for_box(study)
+
+        # update box metadata
+        initialize_metadata_test('tmp_lochness/PHOENIX', study,
+                                 information_to_add_to_metadata)
+
+    lochness_obj = config_load_test('tmp_lochness/config.yml', '')
+
+    return args, lochness_obj
+
+
 def test_box_sync_module_default_nonBIDS(args_and_Lochness):
     args, Lochness = args_and_Lochness
 
@@ -83,12 +105,13 @@ def test_box_sync_module_default_nonBIDS(args_and_Lochness):
     show_tree_then_delete('tmp_lochness')
 
 
-def test_box_sync_module_default_BIDS(args_and_Lochness):
-    args, Lochness = args_and_Lochness
+def test_box_sync_module_default_BIDS(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
 
     # change protect to true for all actigraphy
     for study in args.studies:
         new_list = []
+        Lochness['box'][study]['base'] = 'PronetLA'
         for i in Lochness['box'][study]['file_patterns']['actigraphy']:
             i['protect'] = False
             i['processed'] = False
@@ -99,19 +122,20 @@ def test_box_sync_module_default_BIDS(args_and_Lochness):
         sync(Lochness, subject, dry=False)
 
     for study in args.studies:
-        subject_dir = general_root / study / 'raw' / 'actigraphy' / '1001'
+        subject_dir = general_root / study / 'raw' / '1001' / 'actigraphy'
         assert subject_dir.is_dir()
         assert len(list(subject_dir.glob('*csv'))) > 1
 
     show_tree_then_delete('tmp_lochness')
 
 
-def test_box_sync_module_protected(args_and_Lochness):
-    args, Lochness = args_and_Lochness
+def test_box_sync_module_protected(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
 
     # change protect to true for all actigraphy
     for study in args.studies:
         new_list = []
+        Lochness['box'][study]['base'] = 'PronetLA'
         for i in Lochness['box'][study]['file_patterns']['actigraphy']:
             i['protect'] = True
             i['processed'] = False
@@ -122,23 +146,24 @@ def test_box_sync_module_protected(args_and_Lochness):
         sync(Lochness, subject, dry=False)
 
     for study in args.studies:
-        subject_dir = protected_root / study / 'raw' / 'actigraphy' / '1001'
+        subject_dir = protected_root / study / 'raw' / '1001' / 'actigraphy'
         assert subject_dir.is_dir()
         assert len(list(subject_dir.glob('*csv'))) > 1
 
-        subject_dir = general_root / study / 'raw' / 'actigraphy' / '1001'
+        subject_dir = general_root / study / 'raw' / '1001' / 'actigraphy'
         assert subject_dir.is_dir() == False
         assert len(list(subject_dir.glob('*csv'))) == 0
 
     show_tree_then_delete('tmp_lochness')
 
 
-def test_box_sync_module_protect_processed(args_and_Lochness):
-    args, Lochness = args_and_Lochness
+def test_box_sync_module_protect_processed(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
 
     # change protect to true for all actigraphy
     for study in args.studies:
         new_list = []
+        Lochness['box'][study]['base'] = 'PronetLA'
         for i in Lochness['box'][study]['file_patterns']['actigraphy']:
             i['protect'] = True
             i['processed'] = True
@@ -149,19 +174,19 @@ def test_box_sync_module_protect_processed(args_and_Lochness):
         sync(Lochness, subject, dry=False)
 
     for study in args.studies:
-        subject_dir = protected_root / study / 'processed' / 'actigraphy' / '1001'
+        subject_dir = protected_root / study / 'processed' / '1001' / 'actigraphy'
         assert subject_dir.is_dir()
         assert len(list(subject_dir.glob('*csv'))) > 1
 
-        subject_dir = general_root / study / 'processed' / 'actigraphy' / '1001'
+        subject_dir = general_root / study / 'processed' / '1001' / 'actigraphy'
         assert subject_dir.is_dir() == False
         assert len(list(subject_dir.glob('*csv'))) == 0
 
     show_tree_then_delete('tmp_lochness')
 
 
-def test_box_sync_module_missing_root(args_and_Lochness):
-    args, Lochness = args_and_Lochness
+def test_box_sync_module_missing_root(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
 
     # change base for StudyA to missing path
     Lochness['box']['StudyA']['base'] = 'hahah'
@@ -198,15 +223,25 @@ def test_box_sync_module_missing_subject(args_and_Lochness):
     show_tree_then_delete('tmp_lochness')
 
 
-def test_box_sync_module_no_redownload(args_and_Lochness):
-    args, Lochness = args_and_Lochness
+def test_box_sync_module_no_redownload(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
+
+    # change protect to true for all actigraphy
+    for study in args.studies:
+        new_list = []
+        Lochness['box'][study]['base'] = 'PronetLA'
+        for i in Lochness['box'][study]['file_patterns']['actigraphy']:
+            i['protect'] = True
+            i['processed'] = True
+            new_list.append(i)
+        Lochness['box'][study]['file_patterns']['actigraphy'] = new_list
 
     # change subject name
     for subject in lochness.read_phoenix_metadata(Lochness):
         sync(Lochness, subject, dry=False)
 
-    a_file_path = general_root / 'StudyA' / 'raw' / 'actigraphy' / '1001' / \
-            'BLS-F6VVM-GENEActivQC-day22to51.csv'
+    a_file_path = protected_root / 'StudyA' / 'processed' / '1001' / \
+            'actigraphy' / 'LA123456_actigraphy.csv'
 
     init_time = a_file_path.stat().st_mtime
 
