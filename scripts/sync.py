@@ -70,7 +70,7 @@ def main():
                              '2017-01-01T15:00:00')
     parser.add_argument('-lss', '--lochness_sync_send',
                         action='store_true',
-                        default=True,
+                        default=False,
                         help='Enable lochness to lochness transfer on the '
                              'sender side')
     parser.add_argument('-lsr', '--lochness_sync_receive',
