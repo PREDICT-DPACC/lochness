@@ -16,6 +16,7 @@ from test_lochness import initialize_metadata_test
 from lochness_create_template import create_lochness_template
 
 import pytest
+import string
 
 
 box_test_dir = test_dir / 'lochness_test/box'
@@ -78,6 +79,11 @@ def args_and_Lochness_BIDS():
 
     lochness_obj = config_load_test('tmp_lochness/config.yml', '')
 
+    # change protect to true for all actigraphy
+    for study in args.studies:
+        # new_list = []
+        lochness_obj['box'][study]['base'] = 'PronetLA'
+
     return args, lochness_obj
 
 
@@ -88,6 +94,7 @@ def test_box_sync_module_default_nonBIDS(args_and_Lochness):
     # change protect to true for all actigraphy
     for study in args.studies:
         new_list = []
+        Lochness['box'][study]['base'] = 'codmtg'
         for i in Lochness['box'][study]['file_patterns']['actigraphy']:
             i['protect'] = False
             i['processed'] = False
@@ -105,16 +112,30 @@ def test_box_sync_module_default_nonBIDS(args_and_Lochness):
     show_tree_then_delete('tmp_lochness')
 
 
+def test_box_sync_module_without_edits(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
+
+    for subject in lochness.read_phoenix_metadata(Lochness):
+        sync(Lochness, subject, dry=False)
+
+    for study in args.studies:
+        subject_dir = protected_root / study / 'raw' / 'actigraphy' / '1001'
+        assert subject_dir.is_dir()
+        assert len(list(subject_dir.glob('*csv'))) == 1
+
+    show_tree_then_delete('tmp_lochness')
+
+
 def test_box_sync_module_default_BIDS(args_and_Lochness_BIDS):
     args, Lochness = args_and_Lochness_BIDS
 
     # change protect to true for all actigraphy
     for study in args.studies:
         new_list = []
-        Lochness['box'][study]['base'] = 'PronetLA'
         for i in Lochness['box'][study]['file_patterns']['actigraphy']:
             i['protect'] = False
             i['processed'] = False
+            i['pattern'] = string.Template('*csv')
             new_list.append(i)
         Lochness['box'][study]['file_patterns']['actigraphy'] = new_list
 
@@ -124,7 +145,7 @@ def test_box_sync_module_default_BIDS(args_and_Lochness_BIDS):
     for study in args.studies:
         subject_dir = general_root / study / 'raw' / 'actigraphy' / '1001'
         assert subject_dir.is_dir()
-        assert len(list(subject_dir.glob('*csv'))) > 1
+        assert len(list(subject_dir.glob('*csv'))) >= 1
 
     show_tree_then_delete('tmp_lochness')
 
@@ -135,10 +156,10 @@ def test_box_sync_module_protected(args_and_Lochness_BIDS):
     # change protect to true for all actigraphy
     for study in args.studies:
         new_list = []
-        Lochness['box'][study]['base'] = 'PronetLA'
         for i in Lochness['box'][study]['file_patterns']['actigraphy']:
             i['protect'] = True
             i['processed'] = False
+            i['pattern'] = string.Template('*csv')
             new_list.append(i)
         Lochness['box'][study]['file_patterns']['actigraphy'] = new_list
 
@@ -147,8 +168,9 @@ def test_box_sync_module_protected(args_and_Lochness_BIDS):
 
     for study in args.studies:
         subject_dir = protected_root / study / 'raw' / 'actigraphy' / '1001'
+        print(subject_dir)
         assert subject_dir.is_dir()
-        assert len(list(subject_dir.glob('*csv'))) > 1
+        assert len(list(subject_dir.glob('*csv'))) == 1
 
         subject_dir = general_root / study / 'raw' / 'actigraphy' / '1001'
         assert subject_dir.is_dir() == False
@@ -163,10 +185,10 @@ def test_box_sync_module_protect_processed(args_and_Lochness_BIDS):
     # change protect to true for all actigraphy
     for study in args.studies:
         new_list = []
-        Lochness['box'][study]['base'] = 'PronetLA'
         for i in Lochness['box'][study]['file_patterns']['actigraphy']:
             i['protect'] = True
             i['processed'] = True
+            i['pattern'] = string.Template('*csv')
             new_list.append(i)
         Lochness['box'][study]['file_patterns']['actigraphy'] = new_list
 
@@ -176,7 +198,7 @@ def test_box_sync_module_protect_processed(args_and_Lochness_BIDS):
     for study in args.studies:
         subject_dir = protected_root / study / 'processed' / 'actigraphy' / '1001'
         assert subject_dir.is_dir()
-        assert len(list(subject_dir.glob('*csv'))) > 1
+        assert len(list(subject_dir.glob('*csv'))) == 1
 
         subject_dir = general_root / study / 'processed' / 'actigraphy' / '1001'
         assert subject_dir.is_dir() == False
@@ -229,10 +251,10 @@ def test_box_sync_module_no_redownload(args_and_Lochness_BIDS):
     # change protect to true for all actigraphy
     for study in args.studies:
         new_list = []
-        Lochness['box'][study]['base'] = 'PronetLA'
         for i in Lochness['box'][study]['file_patterns']['actigraphy']:
             i['protect'] = True
-            i['processed'] = True
+            i['processed'] = False
+            i['pattern'] = string.Template('*csv')
             new_list.append(i)
         Lochness['box'][study]['file_patterns']['actigraphy'] = new_list
 
@@ -240,8 +262,8 @@ def test_box_sync_module_no_redownload(args_and_Lochness_BIDS):
     for subject in lochness.read_phoenix_metadata(Lochness):
         sync(Lochness, subject, dry=False)
 
-    a_file_path = general_root / 'StudyA' / 'raw' / 'actigraphy' / '1001' / \
-            'BLS-F6VVM-GENEActivQC-day22to51.csv'
+    a_file_path = protected_root / 'StudyA' / 'raw' / 'actigraphy' / '1001' / \
+            'LA123456_actigraphy.csv'
 
     init_time = a_file_path.stat().st_mtime
 
@@ -255,134 +277,134 @@ def test_box_sync_module_no_redownload(args_and_Lochness_BIDS):
     show_tree_then_delete('tmp_lochness')
 
 
-def test_box_with_given_structure():
-    site_subject = {
-            'PronetLA': ['LA123456',
-                         'LA132457',
-                         'LA124358'],
-            'PronetSL': ['SL124352',
-                         'SL123453',
-                         'SL124539'],
-            'PronetWU': ['WU142358',
-                         'WU124351',
-                         'WU142531']
-            }
+# def test_box_with_given_structure():
+    # site_subject = {
+            # 'PronetLA': ['LA123456',
+                         # 'LA132457',
+                         # 'LA124358'],
+            # 'PronetSL': ['SL124352',
+                         # 'SL123453',
+                         # 'SL124539'],
+            # 'PronetWU': ['WU142358',
+                         # 'WU124351',
+                         # 'WU142531']
+            # }
 
-    modalities = {
-            'actigraphy': ['actigraphy'],
-            'interviews': ['onsiteinterview', 'offsiteinterview'],
-            'eeg': ['eeg']
-            }
+    # modalities = {
+            # 'actigraphy': ['actigraphy'],
+            # 'interviews': ['onsiteinterview', 'offsiteinterview'],
+            # 'eeg': ['eeg']
+            # }
 
-    # 'phone': ['accel', 'audioRecordings', 'gps', 'power', 'surveyAnswers', 'surveyTimings']
+    # # 'phone': ['accel', 'audioRecordings', 'gps', 'power', 'surveyAnswers', 'surveyTimings']
 
 
-    root = Path('example_box_root')
-    try:
-        shutil.rmtree(root)
-    except:
-        pass
+    # root = Path('example_box_root')
+    # try:
+        # shutil.rmtree(root)
+    # except:
+        # pass
 
-    for site, subjects in site_subject.items():
+    # for site, subjects in site_subject.items():
 
-        site_dir = root / site
-        for modality, subdirectories in modalities.items():
-            modality_dir = site_dir / modality
-            for subject in subjects:
-                subject_dir = modality_dir / subject
+        # site_dir = root / site
+        # for modality, subdirectories in modalities.items():
+            # modality_dir = site_dir / modality
+            # for subject in subjects:
+                # subject_dir = modality_dir / subject
 
-                for file in subdirectories:
-                    if modality == 'phone':
-                        final_dir = modality_dir / file / subject
-                        final_dir.mkdir(parents=True, exist_ok=True)
+                # for file in subdirectories:
+                    # if modality == 'phone':
+                        # final_dir = modality_dir / file / subject
+                        # final_dir.mkdir(parents=True, exist_ok=True)
 
-                        if file.endswith('interview') or file.endswith('cordings'):
-                            suffix = 'mp4'
-                        else:
-                            suffix = 'csv'
+                        # if file.endswith('interview') or file.endswith('cordings'):
+                            # suffix = 'mp4'
+                        # else:
+                            # suffix = 'csv'
                             
-                        file_name = f"{subject}_{file}.{suffix}"
+                        # file_name = f"{subject}_{file}.{suffix}"
 
-                        with open(final_dir / file_name, 'w') as f:
-                            f.write('')
-                    else:
-                        final_dir = subject_dir
-                        final_dir.mkdir(parents=True, exist_ok=True)
+                        # with open(final_dir / file_name, 'w') as f:
+                            # f.write('')
+                    # else:
+                        # final_dir = subject_dir
+                        # final_dir.mkdir(parents=True, exist_ok=True)
 
-                        if file.endswith('interview') or file.endswith('cordings'):
-                            suffix = 'mp4'
-                        else:
-                            suffix = 'csv'
+                        # if file.endswith('interview') or file.endswith('cordings'):
+                            # suffix = 'mp4'
+                        # else:
+                            # suffix = 'csv'
                             
-                        file_name = f"{subject}_{file}.{suffix}"
+                        # file_name = f"{subject}_{file}.{suffix}"
 
-                        with open(final_dir / file_name, 'w') as f:
-                            f.write('')
+                        # with open(final_dir / file_name, 'w') as f:
+                            # f.write('')
 
-    # show_tree_then_delete('example_box_root')
-
-
-
-def test_mediaflux_with_given_structure():
-    site_subject = {
-            'PrescientME': ['ME123456',
-                            'ME132457',
-                            'ME124358'],
-            'PrescientAD': ['AD124352',
-                            'AD123453',
-                            'AD124539'],
-            'PrescientPE': ['PE142358',
-                            'PE124351',
-                            'PE142531']
-            }
-
-    modalities = {
-            'actigraphy': ['actigraphy'],
-            'interviews': ['onsiteinterview', 'offsiteinterview'],
-            'eeg': ['eeg']
-            }
-
-    # 'phone': ['accel', 'audioRecordings', 'gps', 'power', 'surveyAnswers', 'surveyTimings']
+    # # show_tree_then_delete('example_box_root')
 
 
-    root = Path('example_mediaflux_root')
-    try:
-        shutil.rmtree(root)
-    except:
-        pass
 
-    for site, subjects in site_subject.items():
+# def test_mediaflux_with_given_structure():
+    # site_subject = {
+            # 'PrescientME': ['ME123456',
+                            # 'ME132457',
+                            # 'ME124358'],
+            # 'PrescientAD': ['AD124352',
+                            # 'AD123453',
+                            # 'AD124539'],
+            # 'PrescientPE': ['PE142358',
+                            # 'PE124351',
+                            # 'PE142531']
+            # }
 
-        site_dir = root / site
-        for modality, subdirectories in modalities.items():
-            modality_dir = site_dir / modality
-            for subject in subjects:
-                subject_dir = modality_dir / subject
+    # modalities = {
+            # 'actigraphy': ['actigraphy'],
+            # 'interviews': ['onsiteinterview', 'offsiteinterview'],
+            # 'eeg': ['eeg']
+            # }
 
-                for file in subdirectories:
-                    if modality == 'phone':
-                        final_dir = modality_dir / file / subject
-                        final_dir.mkdir(parents=True, exist_ok=True)
+    # # 'phone': ['accel', 'audioRecordings', 'gps', 'power', 'surveyAnswers', 'surveyTimings']
 
-                        if file.endswith('interview') or file.endswith('cordings'):
-                            suffix = 'mp4'
-                        else:
-                            suffix = 'csv'
+
+    # root = Path('example_mediaflux_root')
+    # try:
+        # shutil.rmtree(root)
+    # except:
+        # pass
+
+    # for site, subjects in site_subject.items():
+
+        # site_dir = root / site
+        # for modality, subdirectories in modalities.items():
+            # modality_dir = site_dir / modality
+            # for subject in subjects:
+                # subject_dir = modality_dir / subject
+
+                # for file in subdirectories:
+                    # if modality == 'phone':
+                        # final_dir = modality_dir / file / subject
+                        # final_dir.mkdir(parents=True, exist_ok=True)
+
+                        # if file.endswith('interview') or file.endswith('cordings'):
+                            # suffix = 'mp4'
+                        # else:
+                            # suffix = 'csv'
                             
-                        file_name = f"{subject}_{file}.{suffix}"
+                        # file_name = f"{subject}_{file}.{suffix}"
 
-                        with open(final_dir / file_name, 'w') as f:
-                            f.write('')
-                    else:
-                        final_dir = subject_dir
-                        final_dir.mkdir(parents=True, exist_ok=True)
+                        # with open(final_dir / file_name, 'w') as f:
+                            # f.write('')
+                    # else:
+                        # final_dir = subject_dir
+                        # final_dir.mkdir(parents=True, exist_ok=True)
 
-                        if file.endswith('interview') or file.endswith('cordings'):
-                            suffix = 'mp4'
-                        else:
-                            suffix = 'csv'
+                        # if file.endswith('interview') or file.endswith('cordings'):
+                            # suffix = 'mp4'
+                        # else:
+                            # suffix = 'csv'
                             
-                        file_name = f"{subject}_{file}.{suffix}"
+                        # file_name = f"{subject}_{file}.{suffix}"
 
-                        with open(final_dir / file_name, 'w') as f:
-                            f.write('')
+                        # with open(final_dir / file_name, 'w') as f:
+                            # f.write('')
