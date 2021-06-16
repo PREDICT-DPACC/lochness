@@ -12,7 +12,9 @@ requires = [
     'mano',
     'yaxil',
     'six',
-    'pytz'
+    'pytz',
+    'pandas',
+    'jsonpath_ng'
 ]
 
 test_requirements = [
@@ -37,7 +39,10 @@ setup(
     },
     scripts=[
         'scripts/sync.py',
-        'scripts/phoenix-generator.py'
+        'scripts/phoenix_generator.py',
+        'scripts/listen_to_redcap.py',
+        'scripts/lochness_check_config.py',
+        'scripts/lochness_create_template.py',
     ],
     install_requires=requires,
     tests_require=test_requirements
