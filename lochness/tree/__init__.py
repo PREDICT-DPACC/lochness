@@ -29,7 +29,7 @@ Templates = {
         'processed': Template('${base}/mri_eye/processed/eyeTracking')
     },
     'phone': {
-        'raw': Template('${base}/phone/raw/${beiwe_id}'),
+        'raw': Template('${base}/phone/raw'),
         'processed': Template('${base}/phone/processed')
     },
     'physio': {
