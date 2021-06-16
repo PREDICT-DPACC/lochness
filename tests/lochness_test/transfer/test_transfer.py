@@ -297,5 +297,6 @@ def test_sftp():
 def test_using_sync_do_send(Lochness):
     syncArg = SyncArgs('tmp_lochness')
     syncArg.lochness_sync_send = True
+    syncArg.input_sources = syncArg.source
     do(syncArg)
     show_tree_then_delete('tmp_lochness')

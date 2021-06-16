@@ -51,22 +51,29 @@ def test_get_nonbids():
 def test_get_bids():
     for data_type, temp_dict in Templates.items():
         base = 'PHOENIX/GENERAL/StudyA/1001'
-        get(data_type, base)
+        get(data_type, base, BIDS=True)
 
     for data_type, temp_dict in Templates.items():
         if data_type == 'behav_qc':
-            assert (Path(base).parent / 'processed' / '1001' / 'mri_behav' /
-                    'behav_qc').is_dir()
+            assert (Path(base).parent / 'processed' / 'mri_behav' /
+                    'behav_qc' / '1001').is_dir()
+            assert (Path(base).parent / 'raw' / 'mri_behav' /
+                    'behav_qc' / '1001').is_dir()
+        elif data_type == 'mri_eye':
+            assert (Path(base).parent / 'processed' / 'mri_eye' /
+                    'eyeTracking' / '1001').is_dir()
+            assert (Path(base).parent / 'raw' / 'mri_eye' /
+                    'eyeTracking' / '1001').is_dir()
         elif data_type == 'hearing':
             pass
         elif data_type == 'mindlamp':
-            assert (Path(base).parent / 'processed' / '1001' /
-                    'phone').is_dir()
-            assert (Path(base).parent / 'raw' / '1001' / 'phone').is_dir()
+            assert (Path(base).parent / 'processed' / 'phone'
+                    / '1001').is_dir()
+            assert (Path(base).parent / 'raw' / 'phone' / '1001').is_dir()
         else:
-            assert (Path(base).parent / 'processed' / '1001' /
-                    data_type).is_dir()
-            assert (Path(base).parent / 'raw' / '1001' / data_type).is_dir()
+            assert (Path(base).parent / 'processed' / data_type /
+                    '1001').is_dir()
+            assert (Path(base).parent / 'raw' / data_type / '1001').is_dir()
 
     show_tree_then_delete('PHOENIX')
 
@@ -80,19 +87,27 @@ def test_get_more_than_one_subject():
     for subject in ['1001', '1002']:
         for data_type, temp_dict in Templates.items():
             if data_type == 'behav_qc':
-                assert (Path(base).parent / 'processed' / subject /
-                        'mri_behav' / 'behav_qc').is_dir()
+                assert (Path(base).parent / 'processed' / 'mri_behav' /
+                        'behav_qc' / subject).is_dir()
+                assert (Path(base).parent / 'raw' / 'mri_behav' /
+                        'behav_qc' / subject).is_dir()
+            elif data_type == 'mri_eye':
+                assert (Path(base).parent / 'processed' / 'mri_eye' /
+                        'eyeTracking' / subject).is_dir()
+                assert (Path(base).parent / 'raw' / 'mri_eye' /
+                        'eyeTracking' / subject).is_dir()
             elif data_type == 'hearing':
                 pass
             elif data_type == 'mindlamp':
-                assert (Path(base).parent / 'processed' / subject /
-                        'phone').is_dir()
-                assert (Path(base).parent / 'raw' / subject / 'phone').is_dir()
+                assert (Path(base).parent / 'processed' / 'phone'
+                        / subject).is_dir()
+                assert (Path(base).parent / 'raw' / 'phone' / subject).is_dir()
             else:
-                assert (Path(base).parent / 'processed' / subject /
-                        data_type).is_dir()
-                assert (Path(base).parent / 'raw' / subject /
-                        data_type).is_dir()
+                assert (Path(base).parent / 'processed' / data_type /
+                        subject).is_dir()
+                assert (Path(base).parent / 'raw' / data_type /
+                        subject).is_dir()
+
 
     show_tree_then_delete('PHOENIX')
 
@@ -109,19 +124,27 @@ def test_get_more_than_one_study():
             base = f'PHOENIX/GENERAL/{study}/{subject}'
             for data_type, temp_dict in Templates.items():
                 if data_type == 'behav_qc':
-                    assert (Path(base).parent / 'processed' / subject /
-                            'mri_behav' / 'behav_qc').is_dir()
+                    assert (Path(base).parent / 'processed' / 'mri_behav' /
+                            'behav_qc' / subject).is_dir()
+                    assert (Path(base).parent / 'raw' / 'mri_behav' /
+                            'behav_qc' / subject).is_dir()
+                elif data_type == 'mri_eye':
+                    assert (Path(base).parent / 'processed' / 'mri_eye' /
+                            'eyeTracking' / subject).is_dir()
+                    assert (Path(base).parent / 'raw' / 'mri_eye' /
+                            'eyeTracking' / subject).is_dir()
                 elif data_type == 'hearing':
                     pass
                 elif data_type == 'mindlamp':
-                    assert (Path(base).parent / 'processed' / subject /
-                            'phone').is_dir()
-                    assert (Path(base).parent / 'raw' / subject /
-                            'phone').is_dir()
+                    assert (Path(base).parent / 'processed' / 'phone'
+                            / subject).is_dir()
+                    assert (Path(base).parent / 'raw' / 'phone' /
+                            subject).is_dir()
                 else:
-                    assert (Path(base).parent / 'processed' / subject /
-                            data_type).is_dir()
-                    assert (Path(base).parent / 'raw' / subject /
-                            data_type).is_dir()
+                    assert (Path(base).parent / 'processed' / data_type /
+                            subject).is_dir()
+                    assert (Path(base).parent / 'raw' / data_type /
+                            subject).is_dir()
+
     show_tree_then_delete('PHOENIX')
 
