@@ -82,14 +82,6 @@ class Subject(object):
                 'protected_folder': self.protected_folder,
                 'metadata_csv': self.metadata_csv}
         
-    def to_bids(self):
-        if not self._bids:
-            # GENERAL / STUDY / SUBJECT -> GENERAL / STUDY
-            self.general_folder = os.path.dirname(self.general_folder)
-            self.protected_folder = os.path.dirname(self.protected_folder)
-
-            self._bids = True
-
 
 def initialize_metadata(Lochness, args) -> None:
     '''Create (overwrite) metadata.csv using either REDCap or RPMS database'''
@@ -229,9 +221,6 @@ def _subjects(Lochness, study, general_folder, protected_folder, metadata_file):
                           icognition, saliva, xnat, redcap, dropbox,
                           box, mediaflux, mindlamp, daris, rpms,
                           general, protected, metadata_file)
-
-        if Lochness['BIDS']:
-            subject.to_bids()
 
         logger.debug('subject metadata blob:\n{0}'.format(json.dumps(subject.asdict(), indent=2)))
         yield subject
