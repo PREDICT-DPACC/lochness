@@ -122,7 +122,7 @@ def test_box_sync_module_default_BIDS(args_and_Lochness_BIDS):
         sync(Lochness, subject, dry=False)
 
     for study in args.studies:
-        subject_dir = general_root / study / 'raw' / '1001' / 'actigraphy'
+        subject_dir = general_root / study / 'raw' / 'actigraphy' / '1001'
         assert subject_dir.is_dir()
         assert len(list(subject_dir.glob('*csv'))) > 1
 
@@ -146,11 +146,11 @@ def test_box_sync_module_protected(args_and_Lochness_BIDS):
         sync(Lochness, subject, dry=False)
 
     for study in args.studies:
-        subject_dir = protected_root / study / 'raw' / '1001' / 'actigraphy'
+        subject_dir = protected_root / study / 'raw' / 'actigraphy' / '1001'
         assert subject_dir.is_dir()
         assert len(list(subject_dir.glob('*csv'))) > 1
 
-        subject_dir = general_root / study / 'raw' / '1001' / 'actigraphy'
+        subject_dir = general_root / study / 'raw' / 'actigraphy' / '1001'
         assert subject_dir.is_dir() == False
         assert len(list(subject_dir.glob('*csv'))) == 0
 
@@ -174,11 +174,11 @@ def test_box_sync_module_protect_processed(args_and_Lochness_BIDS):
         sync(Lochness, subject, dry=False)
 
     for study in args.studies:
-        subject_dir = protected_root / study / 'processed' / '1001' / 'actigraphy'
+        subject_dir = protected_root / study / 'processed' / 'actigraphy' / '1001'
         assert subject_dir.is_dir()
         assert len(list(subject_dir.glob('*csv'))) > 1
 
-        subject_dir = general_root / study / 'processed' / '1001' / 'actigraphy'
+        subject_dir = general_root / study / 'processed' / 'actigraphy' / '1001'
         assert subject_dir.is_dir() == False
         assert len(list(subject_dir.glob('*csv'))) == 0
 
@@ -240,8 +240,8 @@ def test_box_sync_module_no_redownload(args_and_Lochness_BIDS):
     for subject in lochness.read_phoenix_metadata(Lochness):
         sync(Lochness, subject, dry=False)
 
-    a_file_path = protected_root / 'StudyA' / 'processed' / '1001' / \
-            'actigraphy' / 'LA123456_actigraphy.csv'
+    a_file_path = general_root / 'StudyA' / 'raw' / 'actigraphy' / '1001' / \
+            'BLS-F6VVM-GENEActivQC-day22to51.csv'
 
     init_time = a_file_path.stat().st_mtime
 
