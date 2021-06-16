@@ -305,14 +305,16 @@ def sync_module(Lochness: 'lochness.config',
                 Lochness['box'][module_basename]['file_patterns'].items()):
 
             if Lochness['BIDS']:
-                datatype_obj = get_box_object_based_on_name(
+                datatype_root_obj = get_box_object_based_on_name(
                         client, datatype, bx_base_obj.id)
-                if datatype_obj == None:
+
+                if datatype_root_obj == None:
                     logger.debug(f'{datatype} is not found under {bx_base_obj}')
                     continue
 
-                subject_obj = get_box_object_based_on_name(
-                        client, datatype, datatype_obj.id)
+                # for BIDS root datatype_obj has bx_sid
+                datatype_obj = get_box_object_based_on_name(
+                        client, bx_sid, datatype_root_obj.id)
             else:
                 subject_obj = get_box_object_based_on_name(
                         client, bx_sid, bx_base_obj.id)
@@ -338,10 +340,10 @@ def sync_module(Lochness: 'lochness.config',
             # walk through the root directory
             for root, dirs, files in walk_from_folder_object(
                     bx_head, datatype_obj):
-
                 for box_file_object in files:
                     bx_tail = join(basename(root), box_file_object.name)
                     product = _find_product(bx_tail, products, subject=bx_sid)
+
                     if not product:
                         continue
 
@@ -350,9 +352,6 @@ def sync_module(Lochness: 'lochness.config',
                     # GENERAL / STUDY or PROTECTED / STUDY
                     output_base = subject.protected_folder \
                         if protect else subject.general_folder
-
-                    if Lochness['BIDS']:
-                        output_base = Path(output_base) / subject.id
 
                     encrypt = product.get('encrypt', False)
                     key = enc_key if encrypt else None
