@@ -121,6 +121,57 @@ def test_box_sync_module_without_edits(args_and_Lochness_BIDS):
     for study in args.studies:
         subject_dir = protected_root / study / 'raw' / 'actigraphy' / '1001'
         assert subject_dir.is_dir()
+
+    show_tree_then_delete('tmp_lochness')
+
+
+def test_box_sync_module_paths_as_the_root_negative_1(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
+
+    for study in args.studies:
+        # new_list = []
+        Lochness['box'][study]['base'] = '/example_box_root/haha/PronetLA'
+
+    for subject in lochness.read_phoenix_metadata(Lochness):
+        sync(Lochness, subject, dry=False)
+
+    for study in args.studies:
+        subject_dir = protected_root / study / 'raw' / 'actigraphy' / '1001'
+        assert ~subject_dir.is_dir()
+
+    show_tree_then_delete('tmp_lochness')
+
+
+def test_box_sync_module_paths_as_the_root_negative_2(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
+
+    for study in args.studies:
+        # new_list = []
+        Lochness['box'][study]['base'] = '/example_box_root/PronetLA/haha'
+
+    for subject in lochness.read_phoenix_metadata(Lochness):
+        sync(Lochness, subject, dry=False)
+
+    for study in args.studies:
+        subject_dir = protected_root / study / 'raw' / 'actigraphy' / '1001'
+        assert ~subject_dir.is_dir()
+
+    show_tree_then_delete('tmp_lochness')
+
+
+def test_box_sync_module_paths_as_the_root_positive(args_and_Lochness_BIDS):
+    args, Lochness = args_and_Lochness_BIDS
+
+    for study in args.studies:
+        # new_list = []
+        Lochness['box'][study]['base'] = '/example_box_root/PronetLA'
+
+    for subject in lochness.read_phoenix_metadata(Lochness):
+        sync(Lochness, subject, dry=False)
+
+    for study in args.studies:
+        subject_dir = protected_root / study / 'raw' / 'actigraphy' / '1001'
+        assert subject_dir.is_dir()
         assert len(list(subject_dir.glob('*csv'))) == 1
 
     show_tree_then_delete('tmp_lochness')
