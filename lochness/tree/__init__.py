@@ -117,18 +117,18 @@ def get(data_type, base, **kwargs):
             processed_folder = Templates[data_type]['processed'].substitute(
                     base=base, **kwargs)
 
-    if kwargs.get('makedirs', True):
-        if raw_folder and not os.path.exists(raw_folder):
-            logger.debug(f'creating raw folder {raw_folder}')
-            os.makedirs(raw_folder)
-        if processed_folder and not os.path.exists(processed_folder):
+    if kwargs.get('processed', True):
+        if kwargs.get('makedirs', True) and \
+                processed_folder and not os.path.exists(processed_folder):
             logger.debug(f'creating processed folder {processed_folder}')
             os.makedirs(processed_folder)
             os.chmod(processed_folder, 0o01777)
-
-    if kwargs.get('processed', True):
         return processed_folder
     else:
+        if kwargs.get('makedirs', True) and \
+                raw_folder and not os.path.exists(raw_folder):
+            logger.debug(f'creating raw folder {raw_folder}')
+            os.makedirs(raw_folder)
         return raw_folder
 
 
