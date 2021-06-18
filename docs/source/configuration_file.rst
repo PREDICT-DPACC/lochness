@@ -45,6 +45,15 @@ used to process the PII field values in both REDCap and RPMS sources.
 
     poll_interval: ~/pii_convert_table.csv
 
+lochness_sync_history_csv
+--------------------------
+This field determines the location of the csv file that has the history of
+lochness to lochness data transfer timestamp. If the csv file is missing, the
+timestamp of the next lochness to lochness will be stored to a csv file in the
+given location.
+
+    lochness_sync_history_csv: /data/lochness_sync_history.csv
+
 beiwe
 -----
 The ``beiwe`` section is used to configure how Lochness will behave while downloading
