@@ -51,7 +51,8 @@ def get_field_names_from_redcap(api_url: str,
 def initialize_metadata(Lochness: 'Lochness object',
                         study_name: str,
                         redcap_id_colname: str,
-                        redcap_consent_colname: str) -> None:
+                        redcap_consent_colname: str,
+                        multistudy: bool = True) -> None:
     '''Initialize metadata.csv by pulling data from REDCap
 
     Key arguments:
@@ -60,7 +61,7 @@ def initialize_metadata(Lochness: 'Lochness object',
         redcap_id_colname: Name of the ID field name in REDCap, str.
         redcap_consent_colname: Name of the consent date field name in REDCap,
                                 str.
-
+        multistudy: True if the redcap repo contains more than one study's data
     '''
     study_redcap = Lochness['keyring'][f'redcap.{study_name}']
     api_url = study_redcap['URL'] + '/api/'
@@ -107,6 +108,13 @@ def initialize_metadata(Lochness: 'Lochness object',
     df = pd.DataFrame()
     # for each record in pulled information, extract subject ID and source IDs
     for item in data:
+        if multistudy:
+            site_two_letters_redcap_id = item[redcap_id_colname][:2]
+            site_two_letters_study = study_name.split('_')[1]
+
+            if not site_two_letters_redcap_id == site_two_letters_study:
+                continue
+
         subject_dict = {'Subject ID': item[redcap_id_colname]}
 
         # Consent date
@@ -127,6 +135,9 @@ def initialize_metadata(Lochness: 'Lochness object',
         df_tmp = pd.DataFrame.from_dict(subject_dict, orient='index')
         df = pd.concat([df, df_tmp.T])
 
+
+    if len(df) == 0:
+        return
 
     # Each subject may have more than one arms, which will result in more than
     # single item for the subject in the redcap pulled `content`

@@ -131,7 +131,10 @@ def do(args):
 
     # initialize (overwrite) metadata.csv using either REDCap or RPMS database
     if 'redcap' in args.input_sources or 'rpms' in args.input_sources:
-        lochness.initialize_metadata(Lochness, args)
+        # for ProNET and PRESCIENT, single REDCap and RPMS repo has information
+        # from multiple site
+        multiple_site_in_a_repo = True
+        lochness.initialize_metadata(Lochness, args, multiple_site_in_a_repo)
 
     for subject in lochness.read_phoenix_metadata(Lochness, args.studies):
         if not subject.active and args.skip_inactive:
