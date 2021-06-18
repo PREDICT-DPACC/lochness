@@ -34,8 +34,22 @@ the *keyring*. Here's an example of a decrypted keyring file ::
 
     {
       "lochness": {
+        "REDCAP": {
+          "example": {
+            "redcap.example": [
+              "example"
+            ]
+          }
+        },
         "SECRETS": {
           "StudyA": "quick brown fox jumped over lazy dog"
+        }
+      },
+
+      "redcap.StudyA": {
+        "URL": "https://redcap.partners.org/redcap",
+        "API_TOKEN": {
+          "StudyA": "681BBE7CCA0C879EE5A0111143E81923"
         }
       },
 
