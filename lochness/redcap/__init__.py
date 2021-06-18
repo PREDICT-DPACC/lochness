@@ -280,7 +280,7 @@ def sync(Lochness, subject, dry=False):
                 if not os.path.exists(dst):
                     logger.debug(f'saving {dst}')
                     lochness.atomic_write(dst, content)
-                    process_and_copy_db(Lochness, subject, dst, proc_dst)
+                    # process_and_copy_db(Lochness, subject, dst, proc_dst)
                     # update_study_metadata(subject, json.loads(content))
                     
                 else:
@@ -294,7 +294,7 @@ def sync(Lochness, subject, dry=False):
                         lochness.backup(dst)
                         logger.debug(f'saving {dst}')
                         lochness.atomic_write(dst, content)
-                        process_and_copy_db(Lochness, subject, dst, proc_dst)
+                        # process_and_copy_db(Lochness, subject, dst, proc_dst)
                         # update_study_metadata(subject, json.loads(content))
                     else:
                         print('it is the same file (crc32). '
@@ -368,18 +368,6 @@ def post_to_redcap(api_url, data, debug_tup):
 
 class KeyringError(Exception):
     pass
-
-
-def deidentify_flag(Lochness, study):
-    ''' get study specific deidentify flag with a safe default '''
-    value = Lochness.get('redcap', dict()) \
-                    .get(study, dict()) \
-                    .get('deidentify', False)
-
-    # if this is anything but a boolean, just return False
-    if not isinstance(value, bool):
-        return False
-    return value
 
 
 def deidentify_flag(Lochness, study):
