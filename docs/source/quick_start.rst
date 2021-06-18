@@ -42,14 +42,14 @@ the *keyring*. Here's an example of a decrypted keyring file ::
           }
         },
         "SECRETS": {
-          "StudyA": "quick brown fox jumped over lazy dog"
+          "example": "quick brown fox jumped over lazy dog"
         }
       },
 
-      "redcap.StudyA": {
+      "redcap.example": {
         "URL": "https://redcap.partners.org/redcap",
         "API_TOKEN": {
-          "StudyA": "681BBE7CCA0C879EE5A0111143E81923"
+          "StudyA": "681BBE7CCA0C879EE5**********"
         }
       },
 
