@@ -10,6 +10,7 @@ import sys
 import paramiko
 import tarfile
 import shutil
+from lochness import keyring
 
 from typing import List, Tuple
 
@@ -210,8 +211,10 @@ def send_data_over_sftp(Lochness, file_to_send: str):
 def lochness_to_lochness_transfer(Lochness, general_only: bool = True):
     '''Lochness to Lochness transfer
 
-    TODO: update dir to tmp dir
+    Key arguments:
+        Lochness: Lochness config.load object
         general_only: only searches new files under GENERAL directory, bool.
+                      default = True.
     '''
     with tf.NamedTemporaryFile(suffix='tmp.tar',
                                delete=False,
@@ -224,6 +227,37 @@ def lochness_to_lochness_transfer(Lochness, general_only: bool = True):
 
         # send to remote server
         send_data_over_sftp(Lochness, tmpfilename.name)
+
+
+def lochness_to_lochness_transfer_rsync(Lochness, general_only: bool = True):
+    '''Lochness to Lochness transfer using rsync
+
+    Key arguments:
+        Lochness: Lochness config.load object
+        general_only: only searches new files under GENERAL directory, bool.
+                      default = True.
+
+    Requirements:
+        Lochness['keyring'][f'rsync']['ID']
+        Lochness['keyring'][f'rsync']['SERVER']
+        Lochness['keyring'][f'rsync']['PASSWORD']
+        Lochness['keyring'][f'rsync']['PHOENIX_PATH_RSYNC']
+    '''
+
+    rsync_id, rsync_server, rsync_password, phoenix_path_rsync = \
+            keyring.rsync_token(Lochness, 'rsync')
+
+    source_directory = Path(Lochness["phoenix_root"]) / 'GENERAL' \
+            if general_only else Lochness["phoenix_root"]
+
+    command = f'rsync -avz \
+            {source_directory}/ \
+            {rsync_id}@{rsync_server}:{phoenix_path_rsync}'
+
+    proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    proc.wait()
+
+    outs, _ = proc.communicate()
 
 
 def lochness_to_lochness_transfer_receive(Lochness):

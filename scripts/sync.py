@@ -23,6 +23,7 @@ import lochness.scheduler as scheduler
 import lochness.icognition as iCognition
 import lochness.onlinescoring as OnlineScoring
 from lochness.transfer import lochness_to_lochness_transfer
+from lochness.transfer import lochness_to_lochness_transfer_rsync
 from lochness.transfer import lochness_to_lochness_transfer_receive
 
 SOURCES = {
@@ -73,6 +74,10 @@ def main():
                         default=False,
                         help='Enable lochness to lochness transfer on the '
                              'sender side')
+    parser.add_argument('-rsync', '--rsync',
+                        action='store_true',
+                        default=False,
+                        help='Use rsync in lochness to lochness transfer')
     parser.add_argument('-lsr', '--lochness_sync_receive',
                         action='store_true',
                         default=False,
@@ -147,7 +152,10 @@ def do(args):
 
     # transfer new files after all sync attempts are done
     if args.lochness_sync_send:
-        lochness_to_lochness_transfer(Lochness)
+        if args.rsync:
+            lochness_to_lochness_transfer_rsync(Lochness)
+        else:
+            lochness_to_lochness_transfer(Lochness)
 
 
 if __name__ == '__main__':

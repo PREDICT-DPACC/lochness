@@ -53,6 +53,7 @@ class KeyringAndEncryptLochnessTransfer(KeyringAndEncrypt):
 @pytest.fixture
 def Lochness():
     args = Args('tmp_lochness')
+    args.rsync = True
     create_lochness_template(args)
     KeyringAndEncryptLochnessTransfer(args.outdir)
 
@@ -300,3 +301,13 @@ def test_using_sync_do_send(Lochness):
     syncArg.input_sources = syncArg.source
     do(syncArg)
     show_tree_then_delete('tmp_lochness')
+
+
+def test_lochness_to_lochness_transfer_rsync(Lochness):
+    syncArg = SyncArgs('tmp_lochness')
+    syncArg.lochness_sync_send = True
+    syncArg.rsync = True
+    syncArg.input_sources = syncArg.source
+    do(syncArg)
+    show_tree_then_delete('tmp_lochness')
+

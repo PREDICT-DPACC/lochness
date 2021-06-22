@@ -189,6 +189,14 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
             "PORT": "2222",
             }
 
+    if args.rsync:
+        # lower part of the keyring
+        template_dict['rsync'] = {
+            'ID': "rsync_server_id",
+            'SERVER': "rsync_server_ip",
+            'PASSWORD': "rsync_server_password",
+            'PHOENIX_PATH_RSYNC': "/rsync/server/phoenix/path"}
+
     if args.lochness_sync_receive:
         # lower part of the keyring
         template_dict[f'lochness_sync'] = {
