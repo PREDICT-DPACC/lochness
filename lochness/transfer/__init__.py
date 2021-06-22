@@ -260,6 +260,37 @@ def lochness_to_lochness_transfer_rsync(Lochness, general_only: bool = True):
     outs, _ = proc.communicate()
 
 
+def lochness_to_lochness_transfer_s3(Lochness, general_only: bool = True):
+    '''Lochness to Lochness transfer using s3
+
+    Key arguments:
+        Lochness: Lochness config.load object
+        general_only: only searches new files under GENERAL directory, bool.
+                      default = True.
+
+    Requirements:
+        Lochness['keyring'][f's3']['ID']
+        Lochness['keyring'][f's3']['SERVER']
+        Lochness['keyring'][f's3']['PASSWORD']
+        Lochness['keyring'][f's3']['PHOENIX_PATH_s3']
+    '''
+
+    s3_bucket_name, s3_server, s3_password, s3_phoenix_path = \
+            keyring.s3_token(Lochness, 's3')
+
+    source_directory = Path(Lochness["phoenix_root"]) / 'GENERAL' \
+            if general_only else Lochness["phoenix_root"]
+
+    command = f'aws s3 sync \
+            {source_directory}/ \
+            s3://{s3_bucket_name}/{s3_phoenix_path}/'
+
+    proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    proc.wait()
+
+    outs, _ = proc.communicate()
+
+
 def lochness_to_lochness_transfer_receive(Lochness):
     '''Get newly transferred file and decompress to PHOENIX
 

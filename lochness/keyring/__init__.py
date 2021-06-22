@@ -62,6 +62,20 @@ def rsync_token(Lochness, key):
             Lochness['keyring'][key]['PHOENIX_PATH_RSYNC'])
 
 
+def s3_token(Lochness, key):
+    '''get rsync token from keyring'''
+    if key not in Lochness['keyring']:
+        raise KeyringError('\'{0}\' not in keyring'.format(key))
+
+    for key_var in ['BUCKET_NAME', 'SERVER', 'PASSWORD', 'PHOENIX_PATH_S3']:
+        if key_var not in Lochness['keyring'][key]:
+            raise KeyringError(f'\'{key_var}\' not in {0}'.format(key))
+
+    return (Lochness['keyring'][key]['BUCKET_NAME'],
+            Lochness['keyring'][key]['SERVER'],
+            Lochness['keyring'][key]['PASSWORD'],
+            Lochness['keyring'][key]['PHOENIX_PATH_S3'])
+
 
 def mediaflux_api_token(Lochness, key):
     """

@@ -24,6 +24,7 @@ import lochness.icognition as iCognition
 import lochness.onlinescoring as OnlineScoring
 from lochness.transfer import lochness_to_lochness_transfer
 from lochness.transfer import lochness_to_lochness_transfer_rsync
+from lochness.transfer import lochness_to_lochness_transfer_s3
 from lochness.transfer import lochness_to_lochness_transfer_receive
 
 SOURCES = {
@@ -78,6 +79,10 @@ def main():
                         action='store_true',
                         default=False,
                         help='Use rsync in lochness to lochness transfer')
+    parser.add_argument('-s3', '--s3',
+                        action='store_true',
+                        default=False,
+                        help='Use s3 bucket in lochness to lochness transfer')
     parser.add_argument('-lsr', '--lochness_sync_receive',
                         action='store_true',
                         default=False,
@@ -154,6 +159,8 @@ def do(args):
     if args.lochness_sync_send:
         if args.rsync:
             lochness_to_lochness_transfer_rsync(Lochness)
+        elif args.s3:
+            lochness_to_lochness_transfer_s3(Lochness)
         else:
             lochness_to_lochness_transfer(Lochness)
 
