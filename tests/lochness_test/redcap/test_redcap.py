@@ -50,6 +50,37 @@ def args_and_Lochness_ampsz():
     return args, lochness_obj
 
 
+@pytest.fixture
+def args_and_Lochness_fake():
+    args = Args('tmp_lochness')
+    args.studies = ['FAKE_AD', 'FAKE_LA']
+    create_lochness_template(args)
+    keyring = KeyringAndEncrypt(args.outdir)
+    for study in args.studies:
+        keyring.update_for_fake_redcap(study)
+
+    lochness_obj = config_load_test('tmp_lochness/config.yml', '')
+
+    return args, lochness_obj
+
+
+def test_initialize_metadata_fake_then_sync(args_and_Lochness_fake):
+    args, Lochness = args_and_Lochness_fake
+
+    # before initializing metadata
+    for study in args.studies:
+        phoenix_path = Path(Lochness['phoenix_root'])
+        general_path = phoenix_path / 'GENERAL'
+        initialize_metadata(Lochness, study,
+                'chric_subject_id',
+                'chric_consent_date')
+
+    for subject in lochness.read_phoenix_metadata(Lochness,
+                                                  studies=args.studies):
+        sync(Lochness, subject, False)
+
+    # show_tree_then_delete('tmp_lochness')
+
 def test_initialize_metadata_ampsz_then_sync(args_and_Lochness_ampsz):
     args, Lochness = args_and_Lochness_ampsz
 
