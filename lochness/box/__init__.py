@@ -96,7 +96,7 @@ def get_box_object_based_on_name(client: boxsdk.client,
     # Return matched box object
     for file_or_folder in root_dir.get_items():
         if file_or_folder.type == 'folder' and \
-           file_or_folder.name == box_folder_name.name:
+           file_or_folder.name == Path(box_folder_name).name:
             return file_or_folder
 
 
