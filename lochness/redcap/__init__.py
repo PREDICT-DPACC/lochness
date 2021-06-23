@@ -112,7 +112,7 @@ def initialize_metadata(Lochness: 'Lochness object',
             site_two_letters_redcap_id = item[redcap_id_colname][:2]
             site_two_letters_study = study_name.split('_')[1]
 
-            if not site_two_letters_redcap_id == site_two_letters_study:
+            if site_two_letters_redcap_id != site_two_letters_study:
                 continue
 
         subject_dict = {'Subject ID': item[redcap_id_colname]}
