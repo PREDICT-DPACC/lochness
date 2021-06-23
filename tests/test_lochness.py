@@ -124,6 +124,15 @@ class KeyringAndEncrypt():
 
         self.write_keyring_and_encrypt()
 
+    def update_for_fake_redcap(self, study):
+        token = Tokens()
+        api_token, url = token.read_token_or_get_input('redcap_fake')
+
+        self.keyring[f'redcap.{study}']['URL'] = url
+        self.keyring[f'redcap.{study}']['API_TOKEN'] = {study: api_token}
+
+        self.write_keyring_and_encrypt()
+
     def write_keyring_and_encrypt(self):
         with open(self.keyring_loc, 'w') as f:
             json.dump(self.keyring, f)
