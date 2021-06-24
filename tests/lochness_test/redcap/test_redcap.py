@@ -35,6 +35,69 @@ def args_and_Lochness():
     return args, lochness_obj
 
 
+
+@pytest.fixture
+def args_and_Lochness_ampsz():
+    args = Args('tmp_lochness')
+    args.studies = ['ProNET_BA', 'Pronet_LA']
+    create_lochness_template(args)
+    keyring = KeyringAndEncrypt(args.outdir)
+    for study in args.studies:
+        keyring.update_for_ampsz_redcap(study)
+
+    lochness_obj = config_load_test('tmp_lochness/config.yml', '')
+
+    return args, lochness_obj
+
+
+@pytest.fixture
+def args_and_Lochness_fake():
+    args = Args('tmp_lochness')
+    args.studies = ['FAKE_AD', 'FAKE_LA']
+    create_lochness_template(args)
+    keyring = KeyringAndEncrypt(args.outdir)
+    for study in args.studies:
+        keyring.update_for_fake_redcap(study)
+
+    lochness_obj = config_load_test('tmp_lochness/config.yml', '')
+
+    return args, lochness_obj
+
+
+def test_initialize_metadata_fake_then_sync(args_and_Lochness_fake):
+    args, Lochness = args_and_Lochness_fake
+
+    # before initializing metadata
+    for study in args.studies:
+        phoenix_path = Path(Lochness['phoenix_root'])
+        general_path = phoenix_path / 'GENERAL'
+        initialize_metadata(Lochness, study,
+                'chric_subject_id',
+                'chric_consent_date')
+
+    for subject in lochness.read_phoenix_metadata(Lochness,
+                                                  studies=args.studies):
+        sync(Lochness, subject, False)
+
+    # show_tree_then_delete('tmp_lochness')
+
+def test_initialize_metadata_ampsz_then_sync(args_and_Lochness_ampsz):
+    args, Lochness = args_and_Lochness_ampsz
+
+    # before initializing metadata
+    for study in args.studies:
+        phoenix_path = Path(Lochness['phoenix_root'])
+        general_path = phoenix_path / 'GENERAL'
+        initialize_metadata(Lochness, study, 'chric_subject_id',
+                'chric_consent_date')
+
+    for subject in lochness.read_phoenix_metadata(Lochness,
+                                                  studies=args.studies):
+        sync(Lochness, subject, False)
+
+    show_tree_then_delete('tmp_lochness')
+
+
 def test_initialize_metadata_function_adding_new_data_to_csv(
         args_and_Lochness):
     args, Lochness = args_and_Lochness
@@ -46,7 +109,7 @@ def test_initialize_metadata_function_adding_new_data_to_csv(
         metadata = general_path / study / f"{study}_metadata.csv"
         assert len(pd.read_csv(metadata)) == 1
 
-        initialize_metadata(Lochness, study, 'record_id1', 'cons_date')
+        initialize_metadata(Lochness, study, 'record_id1', 'cons_date', False)
 
         assert len(pd.read_csv(metadata)) > 3
 
@@ -61,7 +124,7 @@ def test_initialize_metadata_then_sync(args_and_Lochness):
         phoenix_path = Path(Lochness['phoenix_root'])
         general_path = phoenix_path / 'GENERAL'
         metadata = general_path / study / f"{study}_metadata.csv"
-        initialize_metadata(Lochness, study, 'record_id1', 'cons_date')
+        initialize_metadata(Lochness, study, 'record_id1', 'cons_date', False)
 
     for subject in lochness.read_phoenix_metadata(Lochness,
                                                   studies=['StudyA']):
@@ -80,7 +143,7 @@ def LochnessMetadataInitialized(args_and_Lochness):
         general_path = phoenix_path / 'GENERAL'
         metadata = general_path / study / f"{study}_metadata.csv"
 
-        initialize_metadata(Lochness, study, 'record_id1', 'cons_date')
+        initialize_metadata(Lochness, study, 'record_id1', 'cons_date', False)
 
     return Lochness
 
@@ -96,7 +159,7 @@ def test_initialize_metadata_update_when_initialized_again(
         prev_st_mtime = metadata.stat().st_mtime
 
         initialize_metadata(LochnessMetadataInitialized, study,
-                            'record_id1', 'cons_date')
+                            'record_id1', 'cons_date', False)
         post_st_mtime = metadata.stat().st_mtime
 
         assert prev_st_mtime < post_st_mtime
@@ -189,7 +252,10 @@ def test_sync_det_update_while_file_leads_to_mtime_update(
 def test_sync_det_update_while_diff_file_leads_to_data_overwrite(
         lochness_subject_raw_json):
     Lochness, subject, raw_json = lochness_subject_raw_json
+    print(Lochness)
+
     sync(Lochness, subject, False)
+
     # change the content of the existing json
     with open(raw_json, 'w') as json_file:
         json.dump({'test': 'test'}, json_file)
@@ -197,7 +263,7 @@ def test_sync_det_update_while_diff_file_leads_to_data_overwrite(
     text_body = "redcap_url=https%3A%2F%2Fredcap.partners.org%2Fredcap%2F&project_url=https%3A%2F%2Fredcap.partners.org%2Fredcap%2Fredcap_v10.0.30%2Findex.php%3Fpid%3D26709&project_id=26709&username=kc244&record=subject_1&instrument=inclusionexclusion_checklist&inclusionexclusion_checklist_complete=0"
     save_post_from_redcap(
             text_body,
-            Lochness['redcap']['data_entry_trigger_csv'])
+            Lochness['redcap']['StudyA']['data_entry_trigger_csv'])
 
     # second sync without update in the db
     sync(Lochness, subject, False)
