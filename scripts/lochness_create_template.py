@@ -226,6 +226,11 @@ sender: {args.email}
 pii_table: {args.pii_csv}
 lochness_sync_history_csv: {args.lochness_sync_history_csv}
 '''
+    if args.s3:
+        s3_lines = f'''AWS_BUCKET_NAME: ampscz-dev
+AWS_BUCKET_ROOT: TEST_PHOENIX_ROOT'''
+        config_example += s3_lines
+    
     redcap_lines = f'''
 redcap:'''
 
@@ -385,6 +390,14 @@ def get_arguments():
                         action='store_true',
                         help='Enable lochness to lochness transfer on the '
                              'sender side')
+    parser.add_argument('-rsync', '--rsync',
+                        default=True,
+                        action='store_true',
+                        help='Use rsync in lochness to lochness transfer')
+    parser.add_argument('-s3', '--s3',
+                        default=True,
+                        action='store_true',
+                        help='Use s3 rsync in lochness to lochness transfer')
     parser.add_argument('-lsr', '--lochness_sync_receive',
                         default=False,
                         action='store_true',
