@@ -117,5 +117,6 @@ def test_do_with_mindlamp(args):
     initialize_metadata_test(phoenix_root, 'StudyA',
                              information_to_add_to_metadata)
     
+    syncArgs.input_sources = syncArgs.source
     do(syncArgs)
     show_tree_then_delete('tmp_lochness')

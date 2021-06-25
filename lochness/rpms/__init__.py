@@ -45,7 +45,8 @@ def get_rpms_database(rpms_root_path) -> Dict[str, pd.DataFrame]:
 def initialize_metadata(Lochness: 'Lochness object',
                         study_name: str,
                         rpms_id_colname: str,
-                        rpms_consent_colname: str) -> None:
+                        rpms_consent_colname: str,
+                        multistudy: bool = True) -> None:
     '''Initialize metadata.csv by pulling data from RPMS
 
     Key arguments:
@@ -54,7 +55,7 @@ def initialize_metadata(Lochness: 'Lochness object',
         rpms_id_colname: Name of the ID field name in RPMS, str.
         rpms_consent_colname: Name of the consent date field name in RPMS,
                                 str.
-
+        multistudy: True if the rpms repo contains more than one study's data
     '''
     study_rpms = Lochness['keyring'][f'rpms.{study_name}']
     rpms_root_path = study_rpms['RPMS_PATH']
@@ -70,6 +71,13 @@ def initialize_metadata(Lochness: 'Lochness object',
     df = pd.DataFrame()
     # for each record in pulled information, extract subject ID and source IDs
     for measure, df_measure in all_df_dict.items():
+        if multistudy:
+            site_two_letters_rpms_id = df_measure[rpms_id_colname][:2]
+            site_two_letters_study = study_name.split('_')[1]
+
+            if not site_two_letters_rpms_id == site_two_letters_study:
+                continue
+
         subject_dict = {'Subject ID': df_measure[rpms_id_colname]}
 
         # Consent date

@@ -19,6 +19,7 @@ import collections as col
 import lochness.ssh as ssh
 import pandas as pd
 
+
 logger = logging.getLogger(__name__)
 
 Subject = col.namedtuple('Subject', [
@@ -66,6 +67,7 @@ class Subject(object):
         self.general_folder = general
         self.protected_folder = protected
         self.metadata_csv = metadata_file
+        self._bids = False
 
     def asdict(self):
         '''emulating collection._asdict()'''
@@ -80,27 +82,25 @@ class Subject(object):
                 'protected_folder': self.protected_folder,
                 'metadata_csv': self.metadata_csv}
         
-    def to_bids(self):
-        self.general_folder = os.path.join(self.general_folder, self.study)
-        self.protected_folder = os.path.join(self.protected_folder, self.study)
 
-
-def initialize_metadata(Lochness, args) -> None:
+def initialize_metadata(Lochness, args, multiple_site_in_a_repo) -> None:
     '''Create (overwrite) metadata.csv using either REDCap or RPMS database'''
     for study_name in args.studies:
         # if 'redcap' or 'rpms' is in the sources, create (overwrite)
-        if 'redcap' in args.sources:
-            id_fieldname = 'record_id1'
-            consent_fieldname = 'Consent'
+        if 'redcap' in args.input_sources:
+            id_fieldname = 'chric_subject_id'
+            consent_fieldname = 'chric_consent_date'
             REDCap.initialize_metadata(
-                    Lochness, study_name, id_fieldname, consent_fieldname)
+                    Lochness, study_name, id_fieldname, consent_fieldname,
+                    multiple_site_in_a_repo)
 
-        elif 'rpms' in args.sources:
+        elif 'rpms' in args.input_sources:
             # metadata.csv
             id_fieldname = 'record_id1'
             consent_fieldname = 'Consent'
             RPMS.initialize_metadata(
-                    Lochness, study_name, id_fieldname, consent_fieldname)
+                    Lochness, study_name, id_fieldname, consent_fieldname,
+                    multiple_site_in_a_repo)
 
         else:
             pass
@@ -124,7 +124,6 @@ def read_phoenix_metadata(Lochness, studies=None):
                          f'{study_name}_metadata.csv')
         if not os.path.exists(f):
             logger.error('metadata file does not exist {0}'.format(f))
-            print('no meta')
             continue
         logger.debug('reading metadata file {0}'.format(f))
         try:
@@ -224,9 +223,6 @@ def _subjects(Lochness, study, general_folder, protected_folder, metadata_file):
                           icognition, saliva, xnat, redcap, dropbox,
                           box, mediaflux, mindlamp, daris, rpms,
                           general, protected, metadata_file)
-
-        if Lochness['BIDS']:
-            subject.to_bids()
 
         logger.debug('subject metadata blob:\n{0}'.format(json.dumps(subject.asdict(), indent=2)))
         yield subject

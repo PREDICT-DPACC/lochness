@@ -219,13 +219,17 @@ pii_table: {args.pii_csv}
 lochness_sync_history_csv: {args.lochness_sync_history_csv}
 '''
     redcap_lines = f'''
-redcap:
-    phoenix_project:
-        deidentify: True
-    data_entry_trigger_csv: {args.det_csv}
-    update_metadata: True'''
+redcap:'''
 
     config_example += redcap_lines
+
+    for study in args.studies:
+        redcap_deidentify_lines = f'''
+    {study}:
+        deidentify: True
+        data_entry_trigger_csv: {args.det_csv}
+        update_metadata: True'''
+        config_example += redcap_deidentify_lines
 
     if 'mediaflux' in args.sources:
         config_example += '\nmediaflux:'

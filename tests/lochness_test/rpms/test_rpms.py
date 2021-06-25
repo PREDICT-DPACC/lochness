@@ -67,7 +67,7 @@ def test_initializing_based_on_rpms(Lochness):
         - ...
     '''
     create_fake_rpms_repo()
-    initialize_metadata(Lochness, 'StudyA', 'record_id1', 'Consent')
+    initialize_metadata(Lochness, 'StudyA', 'record_id1', 'Consent', False)
     df = pd.read_csv('tmp_lochness/PHOENIX/GENERAL/StudyA/StudyA_metadata.csv')
     show_tree_then_delete('tmp_lochness')
     print(df)
@@ -78,7 +78,7 @@ def test_create_lochness_template(Lochness):
     create_fake_rpms_repo()
     # create_lochness_template(args)
     study_name = 'StudyA'
-    initialize_metadata(Lochness, study_name, 'record_id1', 'Consent')
+    initialize_metadata(Lochness, study_name, 'record_id1', 'Consent', False)
 
     for subject in lochness.read_phoenix_metadata(Lochness,
                                                   studies=['StudyA']):
@@ -118,7 +118,7 @@ def test_sync_from_empty(args):
     dry=False
     study_name = 'StudyA'
     Lochness = config_load_test(f'{args.outdir}/config.yml', '')
-    initialize_metadata(Lochness, study_name, 'record_id1', 'Consent')
+    initialize_metadata(Lochness, study_name, 'record_id1', 'Consent', False)
 
     for subject in lochness.read_phoenix_metadata(Lochness,
                                                   studies=['StudyA']):

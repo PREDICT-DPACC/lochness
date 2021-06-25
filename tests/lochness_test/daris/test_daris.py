@@ -96,7 +96,7 @@ def test_daris_download():
 
 def initialize_metadata(Lochness, study_name):
     df = pd.DataFrame({'Active': [1],
-        'Consent': '1988.-09-16',
+        'Consent': '1988-09-16',
         'Subject ID': 'subject01',
         'Daris': 'daris.StudyA:5Yp0E'})
     df_loc = Path(Lochness['phoenix_root']) / 'GENERAL' / \

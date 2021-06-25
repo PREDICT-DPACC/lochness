@@ -34,8 +34,22 @@ the *keyring*. Here's an example of a decrypted keyring file ::
 
     {
       "lochness": {
+        "REDCAP": {
+          "example": {
+            "redcap.example": [
+              "example"
+            ]
+          }
+        },
         "SECRETS": {
-          "StudyA": "quick brown fox jumped over lazy dog"
+          "example": "quick brown fox jumped over lazy dog"
+        }
+      },
+
+      "redcap.example": {
+        "URL": "https://redcap.partners.org/redcap",
+        "API_TOKEN": {
+          "example": "681BBE7CCA0C879EE5**********"
         }
       },
 
@@ -109,16 +123,16 @@ manually, or by using the provided ``phoenix-generator.py`` command line tool th
 be installed with Lochness. To use the command line tool, simply provide a study name 
 using the ``-s|--study`` argument and a base filesystem location ::
 
-    phoenix-generator.py --study StudyA ./PHOENIX
+    phoenix-generator.py --study example ./PHOENIX
 
 The above command will generate the following directory tree ::
 
     PHOENIX/
     ├── GENERAL
-    │   └── StudyA
-    │       └── StudyA_metadata.csv
+    │   └── example
+    │       └── example_metadata.csv
     └── PROTECTED
-        └── StudyA
+        └── example
 
 
 Basic usage
