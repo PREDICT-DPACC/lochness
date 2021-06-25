@@ -238,10 +238,23 @@ def lochness_to_lochness_transfer_rsync(Lochness, general_only: bool = True):
                       default = True.
 
     Requirements:
-        Lochness['keyring'][f'rsync']['ID']
-        Lochness['keyring'][f'rsync']['SERVER']
-        Lochness['keyring'][f'rsync']['PASSWORD']
-        Lochness['keyring'][f'rsync']['PHOENIX_PATH_RSYNC']
+        In the keyring file, add following information.
+
+        "rsync": {
+            "ID": "RSYNC_SERVER_ID",
+            "SERVER": "RSYNC_SERVER_ADDRESS",
+            "PASSWORD": "RSYNC_SERVER_PASSWORD",
+            "PHOENIX_PATH_RSYNC": "PHOENIX/PATH/RSYNC"
+            }
+
+            - PHOENIX/PATH/RSYNC must exist in the RSYNC target server
+
+
+        The section above will add following information to the Lochness obj.
+            Lochness['keyring'][f'rsync']['ID']
+            Lochness['keyring'][f'rsync']['SERVER']
+            Lochness['keyring'][f'rsync']['PASSWORD']
+            Lochness['keyring'][f'rsync']['PHOENIX_PATH_RSYNC']
     '''
 
     rsync_id, rsync_server, rsync_password, phoenix_path_rsync = \
@@ -249,6 +262,9 @@ def lochness_to_lochness_transfer_rsync(Lochness, general_only: bool = True):
 
     source_directory = Path(Lochness["phoenix_root"]) / 'GENERAL' \
             if general_only else Lochness["phoenix_root"]
+
+    phoenix_path_rsync = Path(phoenix_path_rsync) / 'GENERAL' \
+            if general_only else Lochness['phoenix_root']
 
     command = f'rsync -avz \
             {source_directory}/ \
@@ -261,7 +277,7 @@ def lochness_to_lochness_transfer_rsync(Lochness, general_only: bool = True):
 
 
 def lochness_to_lochness_transfer_s3(Lochness, general_only: bool = True):
-    '''Lochness to Lochness transfer using s3
+    '''Lochness to Lochness transfer using aws s3 sync
 
     Key arguments:
         Lochness: Lochness config.load object
@@ -269,21 +285,28 @@ def lochness_to_lochness_transfer_s3(Lochness, general_only: bool = True):
                       default = True.
 
     Requirements:
-        Lochness['keyring'][f's3']['ID']
-        Lochness['keyring'][f's3']['SERVER']
-        Lochness['keyring'][f's3']['PASSWORD']
-        Lochness['keyring'][f's3']['PHOENIX_PATH_s3']
+        - AWS CLI needs to be set with the correct credentials before executing
+        this module.
+            $ aws configure
+        - s3 bucket needs to be linked to the ID
+        - The name of the s3 bucket needs to be in the config.yml
+            eg) AWS_BUCKET_NAME: ampscz-dev
+                AWS_BUCKET_PHOENIX_ROOT: TEST_PHOENIX_ROOT
+
     '''
 
-    s3_bucket_name, s3_server, s3_password, s3_phoenix_path = \
-            keyring.s3_token(Lochness, 's3')
+    s3_bucket_name = Lochness['AWS_BUCKET_NAME']
+    s3_phoenix_root = Lochness['AWS_BUCKET_ROOT']
 
     source_directory = Path(Lochness["phoenix_root"]) / 'GENERAL' \
             if general_only else Lochness["phoenix_root"]
 
+    s3_phoenix_root = Path(s3_phoenix_root) / 'GENERAL' \
+            if general_only else Lochness['phoenix_root']
+
     command = f'aws s3 sync \
             {source_directory}/ \
-            s3://{s3_bucket_name}/{s3_phoenix_path}/'
+            s3://{s3_bucket_name}/{s3_phoenix_root}'
 
     proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
     proc.wait()
