@@ -155,7 +155,8 @@ def pretty_print_dict(input_dict: dict):
     with tempfile.NamedTemporaryFile(suffix='.json', delete=True) as tmpfile:
         with open(tmpfile.name, 'w') as f:
             json.dump(input_dict, f,
-                    sort_keys=False, indent='  ', separators=(',', ': '))
+                      sort_keys=False, indent='  ',
+                      separators=(',', ': '))
 
         with open(tmpfile.name, 'r') as f:
             lines = f.readlines()

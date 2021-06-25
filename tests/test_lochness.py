@@ -135,8 +135,10 @@ class KeyringAndEncrypt():
 
     def write_keyring_and_encrypt(self):
         with open(self.keyring_loc, 'w') as f:
-            json.dump(self.keyring, f)
-        
+            json.dump(self.keyring, f,
+                      sort_keys=False, indent='  ',
+                      separators=(',', ': '))
+
         keyring_content = open(self.keyring_loc, 'rb')
         key = crypt.kdf('')
         crypt.encrypt(

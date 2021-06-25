@@ -44,7 +44,7 @@ def base(Lochness, module_name):
                    .get('base', '')
 
 
-def get_box_object_based_on_name(client:boxsdk.client,
+def get_box_object_based_on_name(client: boxsdk.client,
                                  box_folder_name: str,
                                  box_path_id: str = '0') \
                                          -> boxsdk.object.folder:
@@ -65,16 +65,38 @@ def get_box_object_based_on_name(client:boxsdk.client,
 
     Returns:
         box_folder_object
+
     '''
     box_folder_name = str(box_folder_name)
+
+    # if box root is given as path - eg) box_folder_name == 'example/PronetLA'
+    if '/' in box_folder_name:
+        # remove leading '/' from the path string
+        box_folder_name = box_folder_name[1:] if box_folder_name[0] == '/' \
+                else box_folder_name
+
+        # get root object
+        root = Path(box_folder_name).parts[0]
+        box_obj = get_box_object_based_on_name(client,
+                                               root,
+                                               box_path_id)
+
+        if box_path_id == '0':
+            box_obj = get_box_object_based_on_name(
+                    client,
+                    Path(box_folder_name).relative_to(root),
+                    box_obj.id)
+
+        if box_obj is None:
+            return None
 
     # get list of files and directories under the top directory
     root_dir = client.folder(folder_id=box_path_id).get()
 
-    # for entry in listing.entries:
+    # Return matched box object
     for file_or_folder in root_dir.get_items():
         if file_or_folder.type == 'folder' and \
-           file_or_folder.name == box_folder_name:
+           file_or_folder.name == Path(box_folder_name).name:
             return file_or_folder
 
 
@@ -296,7 +318,7 @@ def sync_module(Lochness: 'lochness.config',
         bx_base_obj = get_box_object_based_on_name(
                 client, bx_base, '0')
 
-        if bx_base_obj == None:
+        if bx_base_obj is None:
             logger.debug('Root of the box is not found')
             continue
 
