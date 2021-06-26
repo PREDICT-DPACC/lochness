@@ -180,6 +180,23 @@ lochness_check_config.py -ke /data/lochness_root/.lochness.enc
 > bash 2_sync_command.sh
 
 
+
+### To use `lochness_to_lochness` transfer through `aws s3`
+
+1. Set up s3 bucket
+2. Install aws CLI
+3. Configure CLI with your s3 bucket information
+
+`$ aws configure`
+
+4. Add your AWS information to `config.yml`
+
+```
+AWS_BUCKET_NAME: ampscz-dev
+AWS_BUCKET_ROOT: TEST_PHOENIX_ROOT
+```
+
+
 ### REDCap Data Entry Trigger capture
 
 If your sources include REDCap and you would like to configure lochness to 
