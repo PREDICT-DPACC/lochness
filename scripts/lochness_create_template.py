@@ -126,6 +126,8 @@ def write_commands_needed(args: 'argparse',
                         --source {' '.join(sources)} \
                         --lochness_sync_send --s3 \
                         --debug --continuous\n"
+        
+        command = re.sub('\s\s+', ' \\\n\t', command)
         f.write(command)
 
 
@@ -409,11 +411,11 @@ def get_arguments():
                         help='Enable lochness to lochness transfer on the '
                              'sender side')
     parser.add_argument('-rsync', '--rsync',
-                        default=True,
+                        default=False,
                         action='store_true',
                         help='Use rsync in lochness to lochness transfer')
     parser.add_argument('-s3', '--s3',
-                        default=True,
+                        default=False,
                         action='store_true',
                         help='Use s3 rsync in lochness to lochness transfer')
     parser.add_argument('-lsr', '--lochness_sync_receive',
