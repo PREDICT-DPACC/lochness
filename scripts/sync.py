@@ -22,10 +22,10 @@ import lochness.rpms as RPMS
 import lochness.scheduler as scheduler
 import lochness.icognition as iCognition
 import lochness.onlinescoring as OnlineScoring
-from lochness.transfer import lochness_to_lochness_transfer
+from lochness.transfer import lochness_to_lochness_transfer_sftp
 from lochness.transfer import lochness_to_lochness_transfer_rsync
 from lochness.transfer import lochness_to_lochness_transfer_s3
-from lochness.transfer import lochness_to_lochness_transfer_receive
+from lochness.transfer import lochness_to_lochness_transfer_receive_sftp
 
 SOURCES = {
     'xnat': XNAT,
@@ -136,7 +136,7 @@ def do(args):
 
     # Lochness to Lochness transfer on the receiving side
     if args.lochness_sync_receive:
-        lochness_to_lochness_transfer_receive(Lochness)
+        lochness_to_lochness_transfer_receive_sftp(Lochness)
         return True  # break the do function here for the receiving side
 
     # initialize (overwrite) metadata.csv using either REDCap or RPMS database
@@ -157,12 +157,12 @@ def do(args):
 
     # transfer new files after all sync attempts are done
     if args.lochness_sync_send:
-        if args.rsync:
-            lochness_to_lochness_transfer_rsync(Lochness)
-        elif args.s3:
+        if args.s3:
             lochness_to_lochness_transfer_s3(Lochness)
+        elif args.rsync:
+            lochness_to_lochness_transfer_rsync(Lochness)
         else:
-            lochness_to_lochness_transfer(Lochness)
+            lochness_to_lochness_transfer_sftp(Lochness)
 
 
 if __name__ == '__main__':

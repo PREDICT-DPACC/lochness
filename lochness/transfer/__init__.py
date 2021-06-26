@@ -208,7 +208,7 @@ def send_data_over_sftp(Lochness, file_to_send: str):
     transport.close()
 
 
-def lochness_to_lochness_transfer(Lochness, general_only: bool = True):
+def lochness_to_lochness_transfer_sftp(Lochness, general_only: bool = True):
     '''Lochness to Lochness transfer
 
     Key arguments:
@@ -314,7 +314,7 @@ def lochness_to_lochness_transfer_s3(Lochness, general_only: bool = True):
     outs, _ = proc.communicate()
 
 
-def lochness_to_lochness_transfer_receive(Lochness):
+def lochness_to_lochness_transfer_receive_sftp(Lochness):
     '''Get newly transferred file and decompress to PHOENIX
 
     Key arguments:
