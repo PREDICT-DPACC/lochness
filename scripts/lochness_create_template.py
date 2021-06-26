@@ -180,22 +180,24 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
                 }
 
     if args.lochness_sync_send:
-        # lower part of the keyring
-        template_dict[f'lochness_sync'] = {
-            "HOST": "phslxftp2.partners.org",
-            "USERNAME": "USERNAME",
-            "PASSWORD": "*******",
-            "PATH_IN_HOST": "/PATH/IN/HOST",
-            "PORT": "2222",
-            }
-
-    if args.rsync:
-        # lower part of the keyring
-        template_dict['rsync'] = {
-            'ID': "rsync_server_id",
-            'SERVER': "rsync_server_ip",
-            'PASSWORD': "rsync_server_password",
-            'PHOENIX_PATH_RSYNC': "/rsync/server/phoenix/path"}
+        if args.s3:
+            pass
+        elif args.rsync:
+            # lower part of the keyring
+            template_dict['rsync'] = {
+                'ID': "rsync_server_id",
+                'SERVER': "rsync_server_ip",
+                'PASSWORD': "rsync_server_password",
+                'PHOENIX_PATH_RSYNC': "/rsync/server/phoenix/path"}
+        else:
+            # lower part of the keyring
+            template_dict[f'lochness_sync'] = {
+                "HOST": "phslxftp2.partners.org",
+                "USERNAME": "USERNAME",
+                "PASSWORD": "*******",
+                "PATH_IN_HOST": "/PATH/IN/HOST",
+                "PORT": "2222",
+                }
 
     if args.lochness_sync_receive:
         # lower part of the keyring
