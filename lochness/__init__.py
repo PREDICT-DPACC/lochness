@@ -88,15 +88,15 @@ def initialize_metadata(Lochness, args) -> None:
     for study_name in args.studies:
         # if 'redcap' or 'rpms' is in the sources, create (overwrite)
         if 'redcap' in args.input_sources:
-            id_fieldname = 'record_id1'
-            consent_fieldname = 'Consent'
+            id_fieldname = 'chric_subject_id'
+            consent_fieldname = 'chric_consent_date'
             REDCap.initialize_metadata(
                     Lochness, study_name, id_fieldname, consent_fieldname)
 
         elif 'rpms' in args.input_sources:
             # metadata.csv
-            id_fieldname = 'record_id1'
-            consent_fieldname = 'Consent'
+            id_fieldname = 'chric_subject_id'
+            consent_fieldname = 'chric_consent_date'
             RPMS.initialize_metadata(
                     Lochness, study_name, id_fieldname, consent_fieldname)
 
