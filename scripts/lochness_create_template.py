@@ -87,14 +87,14 @@ def create_lochness_template(args):
                           keyring_loc, encrypt_keyring_loc, args.sources)
 
 
-def write_commands_needed(outdir: Path,
+def write_commands_needed(args: 'argparse',
                           config_loc: Path,
                           keyring_loc: Path,
                           encrypt_keyring_loc: Path,
                           sources) -> None:
     '''Write commands'''
     # encrypt_command.sh
-    with open(outdir / '1_encrypt_command.sh', 'w') as f:
+    with open(args.outdir / '1_encrypt_command.sh', 'w') as f:
         f.write('#!/bin/bash\n')
         f.write('# run this command to encrypt the edited keyring '
                 '(lochness.json)\n')
@@ -104,12 +104,20 @@ def write_commands_needed(outdir: Path,
         f.write(command)
 
     # sync_command.sh
-    with open(outdir / '2_sync_command.sh', 'w') as f:
+    with open(args.outdir / '2_sync_command.sh', 'w') as f:
         f.write('#!/bin/bash\n')
         f.write('# run this command to run sync.py\n')
         f.write('# eg) bash 2_sync_command.sh\n')
-        command = f"sync.py -c {config_loc} --source {' '.join(sources)} " \
-                   "--lochness_sync_send --debug --continuous\n"
+
+        if args.s3:
+            command = f"sync.py -c {config_loc} --source {' '.join(sources)} " \
+                       "--lochness_sync_send --s3 --debug --continuous\n"
+        elif args.rsync:
+            command = f"sync.py -c {config_loc} --source {' '.join(sources)} " \
+                       "--lochness_sync_send --s3 --debug --continuous\n"
+        else args.lss:
+            command = f"sync.py -c {config_loc} --source {' '.join(sources)} " \
+                       "--lochness_sync_send --s3 --debug --continuous\n"
         f.write(command)
 
 
