@@ -10,7 +10,7 @@ support new services is also a fairly simple process.
 
 ## Table of contents
 1. [Installation](#installation)
-2. [Quick setup from a template](#Setup from a template)
+2. [Quick setup from a template](#Setup_from_a_template)
 3. [Documentation](http://docs.neuroinfo.org/lochness/en/latest/)
 
 
@@ -69,22 +69,26 @@ Create an example template to easily structure the lochness system
 # ProNET
 lochness_create_template.py \
     --outdir /data/lochness_root \
-    --studies BWH McLean \
+    --studies PronetLA PronetSL PronetWU \
     --sources redcap xnat box mindlamp \
     --email kevincho@bwh.harvard.edu \
     --poll_interval 43200 \
     --ssh_host erisone.partners.org \
-    --ssh_user kc244
+    --ssh_user kc244 \
+    --lochness_sync_send \
+    --s3
 
 # PRESCIENT
 lochness_create_template.py \
     --outdir /data/lochness_root \
-    --studies BWH McLean \
-    --sources RPMS daris mediaflux mindlamp \
+    --studies PrescientAD PrescientME PrescientPE \
+    --sources RPMS mediaflux mindlamp \
     --email kevincho@bwh.harvard.edu \
     --poll_interval 43200 \
     --ssh_host erisone.partners.org \
-    --ssh_user kc244 
+    --ssh_user kc244 \
+    --lochness_sync_send \
+    --s3
 
 # For more options: lochness_create_template.py -h
 ```
@@ -100,18 +104,20 @@ Running one of the commands above will create the structure below
 ├── 2_sync_command.sh
 ├── PHOENIX
 │   ├── GENERAL
-│   │   ├── BWH
-│   │   │   └── BWH_metadata.csv
-│   │   └── McLean
-│   │       └── McLean_metadata.csv
+│   │   ├── PronetLA
+│   │   │   └── PronetLA_metadata.csv
+│   │   ├── PronetSL
+│   │   │   └── PronetSL_metadata.csv
+│   │   └── PronetWU
+│   │       └── PronetWU_metadata.csv
 │   └── PROTECTED
-│       ├── BWH
-│       └── McLean
+│       ├── PronetLA
+│       ├── PronetSL
+│       └── PronetWU
 ├── config.yml
 ├── lochness.json
 └── pii_convert.csv
 ```
-
 
 
 1. Change information in `config.yml` and `lochness.json` as needed.
@@ -124,8 +130,12 @@ Running one of the commands above will create the structure below
    Currently, lochness initializes the metadata using the following field names 
    in REDCap and RPMS.
 
-- `record_id1`: the record ID field name
-- `Consent`: the field name of the consent date
+- `chric_subject_id`: the record ID field name
+    - this field name must be in the REDCap or RPMS repository for the metadata
+      to be updated by lochness.
+- `chric_consent_date`: the field name of the consent date
+    - this field name must be in the REDCap or RPMS repository for the metadata
+      to be updated by lochness.
 - `beiwe_id`: the field name of the BEIWE ID.
 - `xnat_id`: the field name of the XNAT ID.
 - `dropbox_id`: the field name of the Dropbox ID.
@@ -150,7 +160,9 @@ information in json, remove the `lochness.json` after running the encryption.
 
 You can still extract keyring structure without sensitive information by running
 
-> lochness_check_config.py -ke /data/lochness_root/.lochness.enc
+```
+lochness_check_config.py -ke /data/lochness_root/.lochness.enc
+```
 
 
 4. Set up REDCap Data Entry Trigger if using REDCap. Please see below 
