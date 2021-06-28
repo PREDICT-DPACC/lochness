@@ -127,7 +127,7 @@ def main():
             logger.info('sleeping for {0} seconds'.format(Lochness['poll_interval']))
             time.sleep(Lochness['poll_interval'])
     else:
-        do(args)
+        do(args, Lochness)
 
 
 def do(args, Lochness):
