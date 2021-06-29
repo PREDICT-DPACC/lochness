@@ -31,6 +31,8 @@ class SyncArgs(object):
         self.archive_base = None
         self.hdd = None
         self.dry = False
+        self.rsync = False
+        self.s3 = False
 
         self.source = [SOURCES[x] for x in self.source]
     def __str__(self):
@@ -55,6 +57,8 @@ class Args:
         self.lochness_sync_history_csv = 'lochness_sync_history.csv'
         self.det_csv = 'prac.csv'
         self.pii_csv = ''
+        self.rsync = False
+        self.s3 = False
 
 
 class Tokens():
@@ -76,6 +80,20 @@ class Tokens():
 
         return items_to_return
 
+    def get_var_names(self, module_name: str) -> list:
+        items_to_return = []
+
+        if self.all_token_file.is_file():
+            df = pd.read_csv(self.all_token_file)
+            for index, row in df[df['module'] == module_name].iterrows():
+                items_to_return.append(row['var'])
+        else:
+            for index, row in df[df['module'] == module_name].iterrows():
+                user_input_value = input(f'Enter {row["var"]}: ')
+                items_to_return.append(user_input_value)
+
+        return items_to_return
+
 
 class KeyringAndEncrypt():
     def __init__(self, tmp_lochness_dir: str):
@@ -90,6 +108,16 @@ class KeyringAndEncrypt():
     def update_for_rpms(self):
         self.keyring['rpms.StudyA']['RPMS_PATH'] = str(
                 Path(self.tmp_lochness_dir).absolute().parent / 'RPMS_repo')
+
+        self.write_keyring_and_encrypt()
+
+    def update_var_subvars(self, var, module_name):
+        token = Tokens()
+        keyrings = token.read_token_or_get_input(module_name)
+        subvar_list = token.get_var_names(module_name)
+
+        for subvar, keyring in zip(subvar_list, keyrings):
+            self.keyring[var][subvar] = keyring
 
         self.write_keyring_and_encrypt()
 

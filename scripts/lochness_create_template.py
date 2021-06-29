@@ -83,18 +83,16 @@ def create_lochness_template(args):
     create_keyring_template(keyring_loc, args)
 
     # write commands for the user to run after editing config and keyring
-    write_commands_needed(args.outdir, config_loc,
-                          keyring_loc, encrypt_keyring_loc, args.sources)
+    write_commands_needed(args, config_loc, keyring_loc, encrypt_keyring_loc)
 
 
-def write_commands_needed(outdir: Path,
+def write_commands_needed(args: 'argparse',
                           config_loc: Path,
                           keyring_loc: Path,
-                          encrypt_keyring_loc: Path,
-                          sources) -> None:
+                          encrypt_keyring_loc: Path) -> None:
     '''Write commands'''
     # encrypt_command.sh
-    with open(outdir / '1_encrypt_command.sh', 'w') as f:
+    with open(args.outdir / '1_encrypt_command.sh', 'w') as f:
         f.write('#!/bin/bash\n')
         f.write('# run this command to encrypt the edited keyring '
                 '(lochness.json)\n')
@@ -104,12 +102,30 @@ def write_commands_needed(outdir: Path,
         f.write(command)
 
     # sync_command.sh
-    with open(outdir / '2_sync_command.sh', 'w') as f:
+    with open(args.outdir / '2_sync_command.sh', 'w') as f:
         f.write('#!/bin/bash\n')
         f.write('# run this command to run sync.py\n')
         f.write('# eg) bash 2_sync_command.sh\n')
-        command = f"sync.py -c {config_loc} --source {' '.join(sources)} " \
-                   "--lochness_sync_send --debug --continuous\n"
+
+        print(dir(args))
+        if args.lochness_sync_send:
+            if args.s3:
+                command = f"sync.py -c {config_loc} \
+                       --source {' '.join(args.sources)} \
+                       --lochness_sync_send --s3 \
+                       --debug --continuous\n"
+            elif args.rsync:
+                command = f"sync.py -c {config_loc} \
+                        --source {' '.join(args.sources)} \
+                        --lochness_sync_send --rsync \
+                        --debug --continuous\n"
+            else:
+                command = f"sync.py -c {config_loc} \
+                        --source {' '.join(args.sources)} \
+                        --lochness_sync_send --s3 \
+                        --debug --continuous\n"
+        
+        command = re.sub('\s\s+', ' \\\n\t', command)
         f.write(command)
 
 
@@ -180,14 +196,24 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
                 }
 
     if args.lochness_sync_send:
-        # lower part of the keyring
-        template_dict[f'lochness_sync'] = {
-            "HOST": "phslxftp2.partners.org",
-            "USERNAME": "USERNAME",
-            "PASSWORD": "*******",
-            "PATH_IN_HOST": "/PATH/IN/HOST",
-            "PORT": "2222",
-            }
+        if args.s3:
+            pass
+        elif args.rsync:
+            # lower part of the keyring
+            template_dict['rsync'] = {
+                'ID': "rsync_server_id",
+                'SERVER': "rsync_server_ip",
+                'PASSWORD': "rsync_server_password",
+                'PHOENIX_PATH_RSYNC': "/rsync/server/phoenix/path"}
+        else:
+            # lower part of the keyring
+            template_dict[f'lochness_sync'] = {
+                "HOST": "phslxftp2.partners.org",
+                "USERNAME": "USERNAME",
+                "PASSWORD": "*******",
+                "PATH_IN_HOST": "/PATH/IN/HOST",
+                "PORT": "2222",
+                }
 
     if args.lochness_sync_receive:
         # lower part of the keyring
@@ -218,6 +244,11 @@ sender: {args.email}
 pii_table: {args.pii_csv}
 lochness_sync_history_csv: {args.lochness_sync_history_csv}
 '''
+    if args.s3:
+        s3_lines = f'''AWS_BUCKET_NAME: ampscz-dev
+AWS_BUCKET_ROOT: TEST_PHOENIX_ROOT'''
+        config_example += s3_lines
+    
     redcap_lines = f'''
 redcap:'''
 
@@ -377,6 +408,14 @@ def get_arguments():
                         action='store_true',
                         help='Enable lochness to lochness transfer on the '
                              'sender side')
+    parser.add_argument('--rsync',
+                        default=False,
+                        action='store_true',
+                        help='Use rsync in lochness to lochness transfer')
+    parser.add_argument('--s3',
+                        default=False,
+                        action='store_true',
+                        help='Use s3 rsync in lochness to lochness transfer')
     parser.add_argument('-lsr', '--lochness_sync_receive',
                         default=False,
                         action='store_true',

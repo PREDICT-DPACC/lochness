@@ -10,6 +10,7 @@ import sys
 import paramiko
 import tarfile
 import shutil
+from lochness import keyring
 
 from typing import List, Tuple
 
@@ -207,11 +208,13 @@ def send_data_over_sftp(Lochness, file_to_send: str):
     transport.close()
 
 
-def lochness_to_lochness_transfer(Lochness, general_only: bool = True):
+def lochness_to_lochness_transfer_sftp(Lochness, general_only: bool = True):
     '''Lochness to Lochness transfer
 
-    TODO: update dir to tmp dir
+    Key arguments:
+        Lochness: Lochness config.load object
         general_only: only searches new files under GENERAL directory, bool.
+                      default = True.
     '''
     with tf.NamedTemporaryFile(suffix='tmp.tar',
                                delete=False,
@@ -226,7 +229,92 @@ def lochness_to_lochness_transfer(Lochness, general_only: bool = True):
         send_data_over_sftp(Lochness, tmpfilename.name)
 
 
-def lochness_to_lochness_transfer_receive(Lochness):
+def lochness_to_lochness_transfer_rsync(Lochness, general_only: bool = True):
+    '''Lochness to Lochness transfer using rsync
+
+    Key arguments:
+        Lochness: Lochness config.load object
+        general_only: only searches new files under GENERAL directory, bool.
+                      default = True.
+
+    Requirements:
+        In the keyring file, add following information.
+
+        "rsync": {
+            "ID": "RSYNC_SERVER_ID",
+            "SERVER": "RSYNC_SERVER_ADDRESS",
+            "PASSWORD": "RSYNC_SERVER_PASSWORD",
+            "PHOENIX_PATH_RSYNC": "PHOENIX/PATH/RSYNC"
+            }
+
+            - PHOENIX/PATH/RSYNC must exist in the RSYNC target server
+
+
+        The section above will add following information to the Lochness obj.
+            Lochness['keyring'][f'rsync']['ID']
+            Lochness['keyring'][f'rsync']['SERVER']
+            Lochness['keyring'][f'rsync']['PASSWORD']
+            Lochness['keyring'][f'rsync']['PHOENIX_PATH_RSYNC']
+    '''
+
+    rsync_id, rsync_server, rsync_password, phoenix_path_rsync = \
+            keyring.rsync_token(Lochness, 'rsync')
+
+    source_directory = Path(Lochness["phoenix_root"]) / 'GENERAL' \
+            if general_only else Lochness["phoenix_root"]
+
+    phoenix_path_rsync = Path(phoenix_path_rsync) / 'GENERAL' \
+            if general_only else Lochness['phoenix_root']
+
+    command = f'rsync -avz \
+            {source_directory}/ \
+            {rsync_id}@{rsync_server}:{phoenix_path_rsync}'
+
+    proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    proc.wait()
+
+    outs, _ = proc.communicate()
+
+
+def lochness_to_lochness_transfer_s3(Lochness, general_only: bool = True):
+    '''Lochness to Lochness transfer using aws s3 sync
+
+    Key arguments:
+        Lochness: Lochness config.load object
+        general_only: only searches new files under GENERAL directory, bool.
+                      default = True.
+
+    Requirements:
+        - AWS CLI needs to be set with the correct credentials before executing
+        this module.
+            $ aws configure
+        - s3 bucket needs to be linked to the ID
+        - The name of the s3 bucket needs to be in the config.yml
+            eg) AWS_BUCKET_NAME: ampscz-dev
+                AWS_BUCKET_PHOENIX_ROOT: TEST_PHOENIX_ROOT
+
+    '''
+
+    s3_bucket_name = Lochness['AWS_BUCKET_NAME']
+    s3_phoenix_root = Lochness['AWS_BUCKET_ROOT']
+
+    source_directory = Path(Lochness["phoenix_root"]) / 'GENERAL' \
+            if general_only else Lochness["phoenix_root"]
+
+    s3_phoenix_root = Path(s3_phoenix_root) / 'GENERAL' \
+            if general_only else Lochness['phoenix_root']
+
+    command = f'aws s3 sync \
+            {source_directory}/ \
+            s3://{s3_bucket_name}/{s3_phoenix_root}'
+
+    proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    proc.wait()
+
+    outs, _ = proc.communicate()
+
+
+def lochness_to_lochness_transfer_receive_sftp(Lochness):
     '''Get newly transferred file and decompress to PHOENIX
 
     Key arguments:

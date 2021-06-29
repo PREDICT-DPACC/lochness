@@ -2,9 +2,12 @@ import lochness
 import os
 import shutil
 from lochness.transfer import get_updated_files, compress_list_of_files
-from lochness.transfer import compress_new_files, lochness_to_lochness_transfer
+from lochness.transfer import compress_new_files
+from lochness.transfer import lochness_to_lochness_transfer_sftp
 from lochness.transfer import decompress_transferred_file_and_copy
-from lochness.transfer import lochness_to_lochness_transfer_receive
+from lochness.transfer import lochness_to_lochness_transfer_receive_sftp
+from lochness.transfer import lochness_to_lochness_transfer_s3
+
 from pathlib import Path
 
 import sys
@@ -34,31 +37,16 @@ import paramiko
 from sync import do
 
 
-class KeyringAndEncryptLochnessTransfer(KeyringAndEncrypt):
-    def __init__(self, tmp_dir):
-        super().__init__(tmp_dir)
-        token = Tokens()
-        host, username, password, path_in_host, port = \
-                token.read_token_or_get_input('transfer')
-
-        self.keyring['lochness_sync']['HOST'] = host
-        self.keyring['lochness_sync']['USERNAME'] = username
-        self.keyring['lochness_sync']['PASSWORD'] = password
-        self.keyring['lochness_sync']['PATH_IN_HOST'] = path_in_host
-        self.keyring['lochness_sync']['PORT'] = port
-
-        self.write_keyring_and_encrypt()
-
-
 @pytest.fixture
 def Lochness():
     args = Args('tmp_lochness')
+    args.rsync = True
     create_lochness_template(args)
-    KeyringAndEncryptLochnessTransfer(args.outdir)
+    k = KeyringAndEncrypt(args.outdir)
+    k.update_var_subvars('lochness_sync', 'transfer')
 
     lochness = config_load_test('tmp_lochness/config.yml', '')
     return lochness
-
 
 
 def test_get_updated_files(Lochness):
@@ -170,23 +158,6 @@ def test_decompress_transferred_file_and_copy():
     show_tree_then_delete(target_phoenix_root)
 
 
-class DpaccArgs:
-    def __init__(self, root_dir):
-        self.outdir = root_dir
-        self.studies = []
-        self.sources = []
-        self.poll_interval = 10
-        self.ssh_user = 'kc244'
-        self.ssh_host = 'erisone.partners.org'
-        self.email = 'kevincho@bwh.harvard.edu'
-        self.lochness_sync_send = False
-        self.lochness_sync_receive = True
-        self.lochness_sync_history_csv = 'lochness_sync_history.csv'
-        self.det_csv = ''
-        self.pii_csv = ''
-
-
-
 def test_lochness_to_lochness_transfer_receive(Lochness):
     print()
 
@@ -223,12 +194,12 @@ def test_lochness_to_lochness_transfer_receive(Lochness):
 
 
     out_dir = 'DPACC'
-    args = DpaccArgs(out_dir)
+    args = Args(out_dir)
     create_lochness_template(args)
     update_keyring_and_encrypt_DPACC(args.outdir)
 
     lochness = config_load_test(f'{out_dir}/config.yml', '')
-    lochness_to_lochness_transfer_receive(lochness)
+    lochness_to_lochness_transfer_receive_sftp(lochness)
 
 
     show_tree_then_delete('DPACC')
@@ -263,7 +234,7 @@ def test_lochness_to_lochness_transfer(Lochness):
                 f.write('ha')
 
 
-    lochness_to_lochness_transfer(Lochness, False)
+    lochness_to_lochness_transfer_sftp(Lochness, False)
     print(os.popen('tree').read())
     shutil.rmtree('tmp_lochness')
 
@@ -300,3 +271,67 @@ def test_using_sync_do_send(Lochness):
     syncArg.input_sources = syncArg.source
     do(syncArg)
     show_tree_then_delete('tmp_lochness')
+
+
+@pytest.fixture
+def LochnessRsync():
+    args = Args('tmp_lochness')
+    args.rsync = True
+    create_lochness_template(args)
+    k = KeyringAndEncrypt(args.outdir)
+    k.update_var_subvars('rsync', 'rsync')
+
+    lochness = config_load_test('tmp_lochness/config.yml', '')
+    return lochness
+
+
+@pytest.fixture
+def LochnessS3():
+    args = Args('tmp_lochness')
+    args.s3 = True
+    create_lochness_template(args)
+    keyringObj = KeyringAndEncrypt(args.outdir)
+
+    lochness = config_load_test('tmp_lochness/config.yml', '')
+    return lochness
+
+
+def test_lochness_to_lochness_transfer_rsync(LochnessRsync):
+    syncArg = SyncArgs('tmp_lochness')
+    syncArg.lochness_sync_send = True
+    syncArg.rsync = True
+    syncArg.input_sources = syncArg.source
+    do(syncArg)
+
+    show_tree_then_delete('tmp_lochness')
+
+
+def test_lochness_to_lochness_transfer_s3(LochnessS3):
+    syncArg = SyncArgs('tmp_lochness')
+    syncArg.lochness_sync_send = True
+    syncArg.s3 = True
+    syncArg.input_sources = syncArg.source
+    do(syncArg)
+
+    command = 's3-tree ampscz-dev'
+    print(os.popen(command).read())
+
+    command = 'aws s3 rm s3://ampscz-dev/TEST_PHOENIX_ROOT --recursive'
+    print(os.popen(command).read())
+
+    show_tree_then_delete('tmp_lochness')
+
+
+def test_s3_sync_function(Lochness):
+    '''Test below requires s3-tree and aws, with bucket called ampscz-dev'''
+    Lochness['AWS_BUCKET_NAME'] = 'ampscz-dev'
+    Lochness['AWS_BUCKET_ROOT'] = 'TEST_PHOENIX_ROOT'
+    lochness_to_lochness_transfer_s3(Lochness, True)
+
+    command = 's3-tree ampscz-dev'
+    print(os.popen(command).read())
+
+    command = 'aws s3 rm s3://ampscz-dev/TEST_PHOENIX_ROOT --recursive'
+    print(os.popen(command).read())
+
+    

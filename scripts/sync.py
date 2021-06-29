@@ -22,8 +22,10 @@ import lochness.rpms as RPMS
 import lochness.scheduler as scheduler
 import lochness.icognition as iCognition
 import lochness.onlinescoring as OnlineScoring
-from lochness.transfer import lochness_to_lochness_transfer
-from lochness.transfer import lochness_to_lochness_transfer_receive
+from lochness.transfer import lochness_to_lochness_transfer_sftp
+from lochness.transfer import lochness_to_lochness_transfer_rsync
+from lochness.transfer import lochness_to_lochness_transfer_s3
+from lochness.transfer import lochness_to_lochness_transfer_receive_sftp
 
 SOURCES = {
     'xnat': XNAT,
@@ -73,6 +75,14 @@ def main():
                         default=False,
                         help='Enable lochness to lochness transfer on the '
                              'sender side')
+    parser.add_argument('-rsync', '--rsync',
+                        action='store_true',
+                        default=False,
+                        help='Use rsync in lochness to lochness transfer')
+    parser.add_argument('-s3', '--s3',
+                        action='store_true',
+                        default=False,
+                        help='Use s3 bucket in lochness to lochness transfer')
     parser.add_argument('-lsr', '--lochness_sync_receive',
                         action='store_true',
                         default=False,
@@ -113,20 +123,17 @@ def main():
     # run downloader once, or continuously
     if args.continuous:
         while True:
-            do(args)
+            do(args, Lochness)
             logger.info('sleeping for {0} seconds'.format(Lochness['poll_interval']))
             time.sleep(Lochness['poll_interval'])
     else:
-        do(args)
+        do(args, Lochness)
 
 
-def do(args):
-    # reload config every time
-    Lochness = config.load(args.config, args.archive_base)
-
+def do(args, Lochness):
     # Lochness to Lochness transfer on the receiving side
     if args.lochness_sync_receive:
-        lochness_to_lochness_transfer_receive(Lochness)
+        lochness_to_lochness_transfer_receive_sftp(Lochness)
         return True  # break the do function here for the receiving side
 
     # initialize (overwrite) metadata.csv using either REDCap or RPMS database
@@ -153,7 +160,12 @@ def do(args):
 
     # transfer new files after all sync attempts are done
     if args.lochness_sync_send:
-        lochness_to_lochness_transfer(Lochness)
+        if args.s3:
+            lochness_to_lochness_transfer_s3(Lochness)
+        elif args.rsync:
+            lochness_to_lochness_transfer_rsync(Lochness)
+        else:
+            lochness_to_lochness_transfer_sftp(Lochness)
 
 
 if __name__ == '__main__':
