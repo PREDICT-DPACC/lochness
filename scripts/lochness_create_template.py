@@ -410,11 +410,11 @@ def get_arguments():
                         action='store_true',
                         help='Enable lochness to lochness transfer on the '
                              'sender side')
-    parser.add_argument('-rsync', '--rsync',
+    parser.add_argument('--rsync',
                         default=False,
                         action='store_true',
                         help='Use rsync in lochness to lochness transfer')
-    parser.add_argument('-s3', '--s3',
+    parser.add_argument('--s3',
                         default=False,
                         action='store_true',
                         help='Use s3 rsync in lochness to lochness transfer')
