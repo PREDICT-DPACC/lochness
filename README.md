@@ -10,7 +10,7 @@ support new services is also a fairly simple process.
 
 ## Table of contents
 1. [Installation](#installation)
-2. [Quick setup from a template](#Setup_from_a_template)
+2. [Quick setup from a template](#setup-from-a-template)
 3. [Documentation](http://docs.neuroinfo.org/lochness/en/latest/)
 
 
