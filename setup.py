@@ -15,7 +15,7 @@ requires = [
     'pytz',
     'pandas',
     'jsonpath_ng',
-    'bpanonymize @ git+ssh://kcho@github.com/AMP-SCZ/dpanonymize@v0.1#egg=bpanonymize'
+    'bpanonymize @ git+https://kcho@github.com/AMP-SCZ/dpanonymize@v0.1#egg=bpanonymize'
 ]
 
 test_requirements = [
