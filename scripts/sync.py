@@ -26,7 +26,7 @@ from lochness.transfer import lochness_to_lochness_transfer_sftp
 from lochness.transfer import lochness_to_lochness_transfer_rsync
 from lochness.transfer import lochness_to_lochness_transfer_s3
 from lochness.transfer import lochness_to_lochness_transfer_receive_sftp
-import bpanonymize
+import dpanonymize
 
 SOURCES = {
     'xnat': XNAT,
