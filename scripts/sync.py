@@ -26,6 +26,7 @@ from lochness.transfer import lochness_to_lochness_transfer_sftp
 from lochness.transfer import lochness_to_lochness_transfer_rsync
 from lochness.transfer import lochness_to_lochness_transfer_s3
 from lochness.transfer import lochness_to_lochness_transfer_receive_sftp
+import dpanonymize
 
 SOURCES = {
     'xnat': XNAT,
@@ -157,6 +158,9 @@ def do(args, Lochness):
         else:
             for Module in args.source:
                 lochness.attempt(Module.sync, Lochness, subject, dry=args.dry)
+
+    # annonymize PII
+    dpanonymize.lock_lochness(Lochness)
 
     # transfer new files after all sync attempts are done
     if args.lochness_sync_send:
