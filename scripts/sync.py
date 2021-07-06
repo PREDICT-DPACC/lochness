@@ -157,7 +157,7 @@ def do(args):
                 lochness.attempt(Module.sync, Lochness, subject, dry=args.dry)
 
     # annonymize PII
-    bpanonymize.lock_lochness(Lochness)
+    dpanonymize.lock_lochness(Lochness)
 
     # transfer new files after all sync attempts are done
     if args.lochness_sync_send:
