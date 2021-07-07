@@ -157,10 +157,10 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
                 'USERNAME': f'**id_for_xnat_{study}**',
                 'PASSWORD': f'**password_for_xnat_{study}**'}
 
-    if 'box' in args.sources:
-        if 'SECRETS' not in template_dict['lochness'].keys():
-            template_dict['lochness']['SECRETS'] = {}
+    if 'SECRETS' not in template_dict['lochness'].keys():
+        template_dict['lochness']['SECRETS'] = {}
 
+    if 'box' in args.sources:
         for study in args.studies:
             template_dict['lochness']['SECRETS'][study] = 'LOCHNESS_SECRETS'
 
@@ -169,6 +169,20 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
                 'CLIENT_ID': '**CLIENT_ID_FROM_BOX_APPS**',
                 'CLIENT_SECRET': '**CLIENT_SECRET_FROM_BOX_APPS**',
                 'API_TOEN': '**APITOKEN_FROM_BOX_APPS**'}
+
+    if 'mediaflux' in args.sources:
+        for study in args.studies:
+            template_dict['lochness']['SECRETS'][study] = 'LOCHNESS_SECRETS'
+
+            # lower part of the keyring
+            template_dict[f'mediaflux.{study}'] = {
+                'HOST': 'mediaflux.researchsoftware.unimelb.edu.au',
+                'PORT': '443',
+                'TRANSPORT': 'https',
+                'TOKEN': '**TOKEN_delete_this_line_if_no_token**',
+                'DOMAIN': 'local',
+                'USER': '**ID**',
+                'PASSWORD': '**PASSWORD**'}
 
     if 'mindlamp' in args.sources:
         for study in args.studies:
@@ -268,7 +282,7 @@ redcap:'''
         for study in args.studies:
             line_to_add = f'''
     {study}:
-        namespace: /DATA/ROOT/UNDER/MEDIAFLUX
+        namespace: /DATA/ROOT/UNDER/MEDIAFLUX/{study}
         delete_on_success: False
         file_patterns:
             actigraphy:
