@@ -69,7 +69,7 @@ def test_initializing_based_on_rpms(Lochness):
         - ...
     '''
     create_fake_rpms_repo()
-    Lochness['keyring']['rpms.StudyA'] = {'RPMS_PATH': Path('RPMS_repo').absolute()}
+    Lochness['RPMS_PATH'] = Path('RPMS_repo').absolute()
     initialize_metadata(Lochness, 'StudyA', 'record_id1', 'Consent', False)
     df = pd.read_csv('tmp_lochness/PHOENIX/GENERAL/StudyA/StudyA_metadata.csv')
     print(df)
@@ -81,7 +81,7 @@ def test_create_lochness_template(Lochness):
     create_fake_rpms_repo()
     # create_lochness_template(args)
     study_name = 'StudyA'
-    Lochness['keyring']['rpms.StudyA'] = {'RPMS_PATH': Path('RPMS_repo').absolute()}
+    Lochness['RPMS_PATH'] = Path('RPMS_repo').absolute()
     initialize_metadata(Lochness, study_name, 'record_id1', 'Consent', False)
 
     for subject in lochness.read_phoenix_metadata(Lochness,
@@ -116,14 +116,17 @@ class KeyringAndEncryptRPMS(KeyringAndEncrypt):
 def test_sync_from_empty(args):
     outdir = 'tmp_lochness'
     args.outdir = outdir
+    args.sources = ['RPMS']
     create_lochness_template(args)
-    KeyringAndEncryptRPMS(args.outdir)
+    KeyringAndEncrypt(args.outdir)
     create_fake_rpms_repo()
 
     dry=False
     study_name = 'StudyA'
     Lochness = config_load_test(f'{args.outdir}/config.yml', '')
-    initialize_metadata(Lochness, study_name, 'record_id1', 'Consent', False)
+    print(Lochness)
+    initialize_metadata(Lochness, study_name, Lochness['RPMS_id_colname'],
+            'Consent', False)
 
     for subject in lochness.read_phoenix_metadata(Lochness,
                                                   studies=['StudyA']):
@@ -155,7 +158,6 @@ def test_get_rpms_real_example(args):
     dry=False
     study_name = 'StudyA'
     Lochness = config_load_test(f'{args.outdir}/config.yml', '')
-    # Lochness['keyring']['rpms.StudyA']['RPMS_PATH'] = '/mnt/prescient/RPMS_incoming'
 
     initialize_metadata(Lochness, study_name, 'src_subject_id', 'Consent', False)
 
@@ -164,5 +166,31 @@ def test_get_rpms_real_example(args):
         sync(Lochness, subject, dry)
 
     # print the structure
-    # show_tree_then_delete('tmp_lochness')
+    show_tree_then_delete('tmp_lochness')
 
+def test_get_rpms_real_example_sync(args):
+    outdir = 'tmp_lochness'
+    args.outdir = outdir
+    args.s3 = True
+    args.sources = ['RPMS']
+    args.BIDS = True
+    create_lochness_template(args)
+    create_fake_rpms_repo()
+    KeyringAndEncrypt(Path(outdir))
+
+    dry=False
+    study_name = 'StudyA'
+    Lochness = config_load_test(f'{args.outdir}/config.yml', '')
+    print(Lochness)
+    print(Lochness['BIDS'])
+    print(Lochness['BIDS'])
+    print(Lochness['BIDS'])
+    # # Lochness['keyring']['rpms.StudyA']['RPMS_PATH'] = '/mnt/prescient/RPMS_incoming'
+
+    initialize_metadata(
+            Lochness, study_name, 
+            Lochness['RPMS_id_colname'], 'Consent', False)
+
+    for subject in lochness.read_phoenix_metadata(
+            Lochness, studies=['StudyA']):
+        sync(Lochness, subject, dry)
