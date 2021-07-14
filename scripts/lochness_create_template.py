@@ -261,7 +261,7 @@ RPMS_consent_colname: Consent'''
 AWS_BUCKET_ROOT: TEST_PHOENIX_ROOT'''
         config_example += s3_lines
     
-    if args.redcap:
+    if 'redcap' in args.sources:
         config_example += '\nredcap:'
 
         for study in args.studies:

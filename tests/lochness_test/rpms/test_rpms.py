@@ -147,15 +147,15 @@ def test_get_rpms_database():
 def test_get_rpms_real_example(args):
     outdir = 'tmp_lochness'
     args.outdir = outdir
+    args.sources = ['RPMS']
     create_lochness_template(args)
-    KeyringAndEncryptRPMS(args.outdir)
     create_fake_rpms_repo()
-    rpms_root_path = '/mnt/prescient/RPMS_incoming'
+    KeyringAndEncrypt(Path(outdir))
 
     dry=False
     study_name = 'StudyA'
     Lochness = config_load_test(f'{args.outdir}/config.yml', '')
-    Lochness['keyring']['rpms.StudyA']['RPMS_PATH'] = '/mnt/prescient/RPMS_incoming'
+    # Lochness['keyring']['rpms.StudyA']['RPMS_PATH'] = '/mnt/prescient/RPMS_incoming'
 
     initialize_metadata(Lochness, study_name, 'src_subject_id', 'Consent', False)
 

@@ -59,8 +59,7 @@ def initialize_metadata(Lochness: 'Lochness object',
                                 str.
         multistudy: True if the rpms repo contains more than one study's data
     '''
-    study_rpms = Lochness['keyring'][f'rpms.{study_name}']
-    rpms_root_path = study_rpms['RPMS_PATH']
+    rpms_root_path = Lochness['RPMS_PATH']
 
     source_source_name_dict = {
         'beiwe': 'Beiwe', 'xnat': 'XNAT', 'dropbox': 'Drpbox',
@@ -142,8 +141,7 @@ def sync(Lochness, subject, dry=False):
     # for each subject
     subject_id = subject.id
     study_name = subject.study
-    study_rpms = Lochness['keyring'][f'rpms.{study_name}']
-    rpms_root_path = study_rpms['RPMS_PATH']
+    rpms_root_path = Lochness['RPMS_PATH']
 
     # source data
     all_df_dict = get_rpms_database(rpms_root_path)
