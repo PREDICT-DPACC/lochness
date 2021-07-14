@@ -122,18 +122,17 @@ def initialize_metadata(Lochness: 'Lochness object',
 
 
 def get_subject_data(all_df_dict: Dict[str, pd.DataFrame],
-                     subject: object) -> Dict[str, pd.DataFrame]:
+                     subject: object,
+                     id_colname: str) -> Dict[str, pd.DataFrame]:
     '''Get subject data from the pandas dataframes in the dictionary'''
 
     subject_df_dict = {}
     for measure, measure_df in all_df_dict.items():
-        measure_df['src_subject_id'] = measure_df['src_subject_id'].astype(str)
-        subject_df = measure_df[measure_df.src_subject_id == subject.id]
+        measure_df[id_colname] = measure_df[id_colname].astype(str)
+        subject_df = measure_df[measure_df[id_colname] == subject.id]
         subject_df_dict[measure] = subject_df
 
     return subject_df_dict
-
-
 
 
 @net.retry(max_attempts=5)
@@ -148,7 +147,9 @@ def sync(Lochness, subject, dry=False):
 
     # source data
     all_df_dict = get_rpms_database(rpms_root_path)
-    subject_df_dict = get_subject_data(all_df_dict, subject)
+    subject_df_dict = get_subject_data(all_df_dict,
+                                       subject,
+                                       Lochness['RPMS_id_colname'])
 
     for measure, source_df in subject_df_dict.items():
         # target data

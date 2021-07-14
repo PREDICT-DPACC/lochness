@@ -201,14 +201,6 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
                 "PROJECT_CID": "******",
                 }
 
-    if 'rpms' in args.sources:
-        for study in args.studies:
-            # lower part of the keyring
-            template_dict[f'rpms.{study}'] = {
-                "RPMS_PATH": "/RPMS/DAILY/EXPORT/PATH",
-                "TOKEN": "******",
-                }
-
     if args.lochness_sync_send:
         if args.s3:
             pass
@@ -258,23 +250,27 @@ sender: {args.email}
 pii_table: {args.pii_csv}
 lochness_sync_history_csv: {args.lochness_sync_history_csv}
 '''
+
+    if 'rpms' in args.sources:
+        config_example += '''RPMS_PATH:/mnt/prescient/RPMS_incoming
+RPMS_id_colname:src_subject_id
+RPMS_consent_colname:Consent'''
+
     if args.s3:
         s3_lines = f'''AWS_BUCKET_NAME: ampscz-dev
 AWS_BUCKET_ROOT: TEST_PHOENIX_ROOT'''
         config_example += s3_lines
     
-    redcap_lines = f'''
-redcap:'''
+    if args.redcap:
+        config_example += '\nredcap:'
 
-    config_example += redcap_lines
-
-    for study in args.studies:
-        redcap_deidentify_lines = f'''
+        for study in args.studies:
+            redcap_deidentify_lines = f'''
     {study}:
         deidentify: True
         data_entry_trigger_csv: {args.det_csv}
         update_metadata: True'''
-        config_example += redcap_deidentify_lines
+            config_example += redcap_deidentify_lines
 
     if 'mediaflux' in args.sources:
         config_example += '\nmediaflux:'
@@ -310,7 +306,6 @@ redcap:'''
               '''
 
             config_example += line_to_add
-
 
     if 'box' in args.sources:
         config_example += '\nbox:'
@@ -360,6 +355,7 @@ notify:
 
     with open(config_loc, 'w') as f:
         f.write(config_example)
+
 
 def create_example_meta_file_advanced(metadata: str,
                                       project_name: str,
