@@ -16,6 +16,8 @@ from test_lochness import Tokens, KeyringAndEncrypt, args, Lochness
 from test_lochness import show_tree_then_delete, config_load_test
 from lochness.rpms import initialize_metadata, sync, get_rpms_database
 
+import pytest
+
 
 def create_fake_rpms_repo():
     '''Create fake RPMS repo per variable'''
@@ -67,10 +69,11 @@ def test_initializing_based_on_rpms(Lochness):
         - ...
     '''
     create_fake_rpms_repo()
+    Lochness['keyring']['rpms.StudyA'] = {'RPMS_PATH': Path('RPMS_repo').absolute()}
     initialize_metadata(Lochness, 'StudyA', 'record_id1', 'Consent', False)
     df = pd.read_csv('tmp_lochness/PHOENIX/GENERAL/StudyA/StudyA_metadata.csv')
-    show_tree_then_delete('tmp_lochness')
     print(df)
+    show_tree_then_delete('tmp_lochness')
     assert len(df) == 5
 
 
@@ -78,6 +81,7 @@ def test_create_lochness_template(Lochness):
     create_fake_rpms_repo()
     # create_lochness_template(args)
     study_name = 'StudyA'
+    Lochness['keyring']['rpms.StudyA'] = {'RPMS_PATH': Path('RPMS_repo').absolute()}
     initialize_metadata(Lochness, study_name, 'record_id1', 'Consent', False)
 
     for subject in lochness.read_phoenix_metadata(Lochness,
@@ -104,6 +108,7 @@ class KeyringAndEncryptRPMS(KeyringAndEncrypt):
         super().__init__(tmp_lochness_dir)
         self.keyring['rpms.StudyA']['RPMS_PATH'] = str(
                 Path(self.tmp_lochness_dir).absolute().parent / 'RPMS_repo')
+        print(self.keyring)
 
         self.write_keyring_and_encrypt()
 
@@ -133,9 +138,31 @@ def test_get_rpms_database():
     rpms_root_path = 'RPMS_repo'
     all_df_dict = get_rpms_database(rpms_root_path)
 
-    assert list(all_df_dict.keys())[0]=='measure_9'
+    assert list(all_df_dict.keys())[0]=='measure_0'
     assert list(all_df_dict.keys())[1]=='measure_8'
 
     assert type(list(all_df_dict.values())[0]) == pd.core.frame.DataFrame
-    print(list(all_df_dict.values())[0])
-    # print(all_df_dict))
+
+
+def test_get_rpms_real_example(args):
+    outdir = 'tmp_lochness'
+    args.outdir = outdir
+    create_lochness_template(args)
+    KeyringAndEncryptRPMS(args.outdir)
+    create_fake_rpms_repo()
+    rpms_root_path = '/mnt/prescient/RPMS_incoming'
+
+    dry=False
+    study_name = 'StudyA'
+    Lochness = config_load_test(f'{args.outdir}/config.yml', '')
+    Lochness['keyring']['rpms.StudyA']['RPMS_PATH'] = '/mnt/prescient/RPMS_incoming'
+
+    initialize_metadata(Lochness, study_name, 'src_subject_id', 'Consent', False)
+
+    for subject in lochness.read_phoenix_metadata(
+            Lochness, studies=['StudyA']):
+        sync(Lochness, subject, dry)
+
+    # print the structure
+    # show_tree_then_delete('tmp_lochness')
+
