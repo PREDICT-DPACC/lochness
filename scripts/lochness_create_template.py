@@ -254,7 +254,8 @@ lochness_sync_history_csv: {args.lochness_sync_history_csv}
     if 'rpms' in args.sources:
         config_example += '''RPMS_PATH: /mnt/prescient/RPMS_incoming
 RPMS_id_colname: src_subject_id
-RPMS_consent_colname: Consent'''
+RPMS_consent_colname: Consent
+'''
 
     if args.s3:
         s3_lines = f'''AWS_BUCKET_NAME: ampscz-dev
