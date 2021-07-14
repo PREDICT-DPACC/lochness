@@ -14,7 +14,8 @@ requires = [
     'six',
     'pytz',
     'pandas',
-    'jsonpath_ng'
+    'jsonpath_ng',
+    'dpanonymize'
 ]
 
 test_requirements = [

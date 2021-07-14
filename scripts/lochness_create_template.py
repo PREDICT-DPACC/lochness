@@ -157,10 +157,10 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
                 'USERNAME': f'**id_for_xnat_{study}**',
                 'PASSWORD': f'**password_for_xnat_{study}**'}
 
-    if 'box' in args.sources:
-        if 'SECRETS' not in template_dict['lochness'].keys():
-            template_dict['lochness']['SECRETS'] = {}
+    if 'SECRETS' not in template_dict['lochness'].keys():
+        template_dict['lochness']['SECRETS'] = {}
 
+    if 'box' in args.sources:
         for study in args.studies:
             template_dict['lochness']['SECRETS'][study] = 'LOCHNESS_SECRETS'
 
@@ -169,6 +169,20 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
                 'CLIENT_ID': '**CLIENT_ID_FROM_BOX_APPS**',
                 'CLIENT_SECRET': '**CLIENT_SECRET_FROM_BOX_APPS**',
                 'API_TOEN': '**APITOKEN_FROM_BOX_APPS**'}
+
+    if 'mediaflux' in args.sources:
+        for study in args.studies:
+            template_dict['lochness']['SECRETS'][study] = 'LOCHNESS_SECRETS'
+
+            # lower part of the keyring
+            template_dict[f'mediaflux.{study}'] = {
+                'HOST': 'mediaflux.researchsoftware.unimelb.edu.au',
+                'PORT': '443',
+                'TRANSPORT': 'https',
+                'TOKEN': '**TOKEN_delete_this_line_if_no_token**',
+                'DOMAIN': 'local',
+                'USER': '**ID**',
+                'PASSWORD': '**PASSWORD**'}
 
     if 'mindlamp' in args.sources:
         for study in args.studies:
@@ -185,14 +199,6 @@ def create_keyring_template(keyring_loc: Path, args: object) -> None:
                 "URL": "https://daris.researchsoftware.unimelb.edu.au",
                 "TOKEN": "******",
                 "PROJECT_CID": "******",
-                }
-
-    if 'rpms' in args.sources:
-        for study in args.studies:
-            # lower part of the keyring
-            template_dict[f'rpms.{study}'] = {
-                "RPMS_PATH": "/RPMS/DAILY/EXPORT/PATH",
-                "TOKEN": "******",
                 }
 
     if args.lochness_sync_send:
@@ -244,23 +250,28 @@ sender: {args.email}
 pii_table: {args.pii_csv}
 lochness_sync_history_csv: {args.lochness_sync_history_csv}
 '''
+
+    if 'rpms' in args.sources:
+        config_example += '''RPMS_PATH: /mnt/prescient/RPMS_incoming
+RPMS_id_colname: src_subject_id
+RPMS_consent_colname: Consent
+'''
+
     if args.s3:
         s3_lines = f'''AWS_BUCKET_NAME: ampscz-dev
 AWS_BUCKET_ROOT: TEST_PHOENIX_ROOT'''
         config_example += s3_lines
     
-    redcap_lines = f'''
-redcap:'''
+    if 'redcap' in args.sources:
+        config_example += '\nredcap:'
 
-    config_example += redcap_lines
-
-    for study in args.studies:
-        redcap_deidentify_lines = f'''
+        for study in args.studies:
+            redcap_deidentify_lines = f'''
     {study}:
         deidentify: True
         data_entry_trigger_csv: {args.det_csv}
         update_metadata: True'''
-        config_example += redcap_deidentify_lines
+            config_example += redcap_deidentify_lines
 
     if 'mediaflux' in args.sources:
         config_example += '\nmediaflux:'
@@ -268,7 +279,7 @@ redcap:'''
         for study in args.studies:
             line_to_add = f'''
     {study}:
-        namespace: /DATA/ROOT/UNDER/MEDIAFLUX
+        namespace: /DATA/ROOT/UNDER/MEDIAFLUX/{study}
         delete_on_success: False
         file_patterns:
             actigraphy:
@@ -296,7 +307,6 @@ redcap:'''
               '''
 
             config_example += line_to_add
-
 
     if 'box' in args.sources:
         config_example += '\nbox:'
@@ -346,6 +356,7 @@ notify:
 
     with open(config_loc, 'w') as f:
         f.write(config_example)
+
 
 def create_example_meta_file_advanced(metadata: str,
                                       project_name: str,

@@ -31,12 +31,14 @@ def get_rpms_database(rpms_root_path) -> Dict[str, pd.DataFrame]:
                      value: pandas dataframe of the measure database
         
     '''
-    rpms_root_path = 'RPMS_repo'
-
     all_df_dict = {}
     for measure_file in Path(rpms_root_path).glob('*csv'):
         measure_name = measure_file.name.split('.')[0]
-        df_tmp = pd.read_csv(measure_file)
+        try:
+            df_tmp = pd.read_csv(measure_file)
+        except pd.errors.EmptyDataError:
+            continue
+
         all_df_dict[measure_name] = df_tmp
 
     return all_df_dict
@@ -57,8 +59,7 @@ def initialize_metadata(Lochness: 'Lochness object',
                                 str.
         multistudy: True if the rpms repo contains more than one study's data
     '''
-    study_rpms = Lochness['keyring'][f'rpms.{study_name}']
-    rpms_root_path = study_rpms['RPMS_PATH']
+    rpms_root_path = Lochness['RPMS_PATH']
 
     source_source_name_dict = {
         'beiwe': 'Beiwe', 'xnat': 'XNAT', 'dropbox': 'Drpbox',
@@ -78,11 +79,11 @@ def initialize_metadata(Lochness: 'Lochness object',
             if not site_two_letters_rpms_id == site_two_letters_study:
                 continue
 
-        subject_dict = {'Subject ID': df_measure[rpms_id_colname]}
+        subject_dict = {'Subject ID': df_measure[rpms_id_colname].values}
 
         # Consent date
         try:
-            subject_dict['Consent'] = df_measure[rpms_consent_colname]
+            subject_dict['Consent'] = df_measure[rpms_consent_colname].values
         except:
             subject_dict['Consent'] = '1988-09-16'
 
@@ -120,17 +121,17 @@ def initialize_metadata(Lochness: 'Lochness object',
 
 
 def get_subject_data(all_df_dict: Dict[str, pd.DataFrame],
-                     subject: object) -> Dict[str, pd.DataFrame]:
+                     subject: object,
+                     id_colname: str) -> Dict[str, pd.DataFrame]:
     '''Get subject data from the pandas dataframes in the dictionary'''
 
     subject_df_dict = {}
     for measure, measure_df in all_df_dict.items():
-        subject_df = measure_df[measure_df.record_id1 == subject.id]
+        measure_df[id_colname] = measure_df[id_colname].astype(str)
+        subject_df = measure_df[measure_df[id_colname] == subject.id]
         subject_df_dict[measure] = subject_df
 
     return subject_df_dict
-
-
 
 
 @net.retry(max_attempts=5)
@@ -140,12 +141,13 @@ def sync(Lochness, subject, dry=False):
     # for each subject
     subject_id = subject.id
     study_name = subject.study
-    study_rpms = Lochness['keyring'][f'rpms.{study_name}']
-    rpms_root_path = study_rpms['RPMS_PATH']
+    rpms_root_path = Lochness['RPMS_PATH']
 
     # source data
     all_df_dict = get_rpms_database(rpms_root_path)
-    subject_df_dict = get_subject_data(all_df_dict, subject)
+    subject_df_dict = get_subject_data(all_df_dict,
+                                       subject,
+                                       Lochness['RPMS_id_colname'])
 
     for measure, source_df in subject_df_dict.items():
         # target data
@@ -169,7 +171,10 @@ def sync(Lochness, subject, dry=False):
             latest_pull_mtime = 0
 
         # if last_modified date > latest_pull_mtime, pull the data
-        if not source_df['last_modified'].max() > latest_pull_mtime:
+        source_df['LastModifiedDate'] = pd.to_datetime(
+                source_df['LastModifiedDate'])
+        if not source_df['LastModifiedDate'].max() > \
+                pd.to_datetime(latest_pull_mtime):
             print('No new updates')
             break
 
@@ -178,7 +183,7 @@ def sync(Lochness, subject, dry=False):
             os.chmod(dirname, 0o0755)
             source_df.to_csv(target_df_loc, index=False)
             os.chmod(target_df_loc, 0o0755)
-            process_and_copy_db(Lochness, subject, target_df_loc, proc_dst)
+            # process_and_copy_db(Lochness, subject, target_df_loc, proc_dst)
 
 
 def update_study_metadata(subject, content: List[dict]) -> None:

@@ -97,7 +97,7 @@ def get(data_type, base, **kwargs):
             sub_folder = Templates[data_type]['raw'].substitute(
                     base='', **kwargs)[1:]
             sub_folder = re.sub('/(raw|processed)', '', sub_folder)
-            raw_folder = base / sub_folder / phoenix_id
+            raw_folder = base / phoenix_id / sub_folder
 
         if 'processed' in Templates[data_type]:
             # restructure root
@@ -106,7 +106,7 @@ def get(data_type, base, **kwargs):
                     base='', **kwargs)[1:]
 
             sub_folder = re.sub('/(raw|processed)', '', sub_folder)
-            processed_folder = base / sub_folder / phoenix_id
+            processed_folder = base / phoenix_id / sub_folder
 
     else:
         if 'raw' in Templates[data_type]:

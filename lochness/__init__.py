@@ -96,8 +96,8 @@ def initialize_metadata(Lochness, args, multiple_site_in_a_repo) -> None:
 
         elif 'rpms' in args.input_sources:
             # metadata.csv
-            id_fieldname = 'chric_subject_id'
-            consent_fieldname = 'chric_consent_date'
+            id_fieldname = Lochness['RPMS_id_colname']
+            consent_fieldname = Lochness['RPMS_consent_colname']
             RPMS.initialize_metadata(
                     Lochness, study_name, id_fieldname, consent_fieldname,
                     multiple_site_in_a_repo)
