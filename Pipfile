@@ -19,3 +19,4 @@ paramiko = "*"
 pytz = "*"
 requests = {extras = ["security"]}
 lochness = {path = ".", editable = true}
+dpanonymize = "*"
